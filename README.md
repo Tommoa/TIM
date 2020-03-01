@@ -1,5 +1,9 @@
 # Threat Intelligence Model (TIM)
 
+The TIM is going to be running on a Flask server which can accessed via a RESTful API. It will be able to identify internal threats on the network using a model and leveraging Splunk's SDK. Some of the threats it will attempt to identify will be:
+- Privilege escalation
+- Example 2
+- Example 3
 
 ## Setup
 
