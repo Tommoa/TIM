@@ -8,14 +8,14 @@ The TIM is going to be running on a Flask server which can accessed via a RESTfu
 ## Setup
 
 ### Flask:
-Firstly ensure you have Flask setup correctly using venv (easiest) or your preffered environment manager.
+Firstly ensure you have Flask setup correctly using venv (easiest) or your preferred environment manager.
 
 Follow this guide to do so:
 
 https://flask.palletsprojects.com/en/1.1.x/installation/
 
 ### Config Files:
-Next ensure you create a file `config.py` in the root directory. E.g.
+Next, ensure you create a file `config.py` in the root directory e.g.
 
 ```
 class DevelopmentConfig(Config):
