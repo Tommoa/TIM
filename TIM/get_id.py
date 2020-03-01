@@ -14,51 +14,52 @@ bp = Blueprint('get_id', __name__, url_prefix='/get_id')
 
 @bp.route('/')
 def ids():
-  # Set up config
-  HOST = app.config['HOST']
-  PORT = app.config['PORT']
-  USERNAME = app.config['USERNAME']
-  PASSWORD = app.config['PASSWORD']
+    # Set up config
+    HOST = app.config['HOST']
+    PORT = app.config['PORT']
+    USERNAME = app.config['USERNAME']
+    PASSWORD = app.config['PASSWORD']
 
-  service = client.connect(
-      host=HOST,
-      port=PORT,
-      username=USERNAME,
-      password=PASSWORD)
+    service = client.connect(
+        host=HOST,
+        port=PORT,
+        username=USERNAME,
+        password=PASSWORD)
 
-  # Define the search string
-  from_date = "2019-06-20"
-  to_date = "2019-10-19"
-  identity = "21969062"
-  exec_mode = {"exec_mode": "normal"}
+    # Define the search string
+    from_date = "2019-06-20"
+    to_date = "2019-10-19"
+    identity = "21969062"
+    exec_mode = {"exec_mode": "normal"}
 
-  search_string = """
-    search * is-ise cise_passed_authentications
-    earliest = "{}" latest="{}" timeformat="%Y-%m-%d" "User-Name"
-    | where like(UserName, "{}")
-    | eval MAC=mvindex(split(Acct_Session_Id, "/"), 1)
-    | table UserName MAC
-  """.format(from_date, to_date, identity)
+    search_string = """
+        search * is-ise cise_passed_authentications
+        earliest = "{}" latest="{}" timeformat="%Y-%m-%d" "User-Name"
+        | where like(UserName, "{}")
+        | eval MAC=mvindex(split(Acct_Session_Id, "/"), 1)
+        | table UserName MAC
+    """.format(from_date, to_date, identity)
 
-  job = service.jobs.create(search_string, **exec_mode)
+    job = service.jobs.create(search_string, **exec_mode)
 
-  # Wait until search is completed
-  while True:
-      while not job.is_ready():
-          pass
+    # Wait until search is completed
+    while True:
+        while not job.is_ready():
+            pass
 
-      if(job["isDone"]):
-          break
+        if(job["isDone"]):
+            break
 
-      sleep(2)
+        sleep(2)
 
-  profiles = []
-  reader = results.ResultsReader(job.results())
-  for result in reader:
-      if isinstance(result, dict):
-          profiles.append({
-              "username": result['UserName'],
-              "mac": result['MAC']
-          })
+    profiles = []
+    reader = results.ResultsReader(job.results())
+    for result in reader:
+        if isinstance(result, dict):
+            profiles.append({
+                "username": result['UserName'],
+                "mac": result['MAC']
+            })
 
-  return jsonify(profiles)
+    return jsonify(profiles)
+    

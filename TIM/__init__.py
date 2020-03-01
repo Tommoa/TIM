@@ -20,7 +20,8 @@ def create_app(test_config=None):
         pass
     
     # register blueprints e.g. endpoints
-    from . import get_id
+    from . import get_id, get_mac
     app.register_blueprint(get_id.bp)
+    app.register_blueprint(get_mac.bp)
 
     return app
