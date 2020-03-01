@@ -1,10 +1,10 @@
-# Github Usage Conventions
+# GitHub Usage Conventions
 
 ## Issues
 
-For any work you are doing, you should create an issue in Github for it. Give it a relevant title and corresponding comment such that anyone in our team can understand it with minimal context.  
+For any work you are doing, you should create an issue in GitHub for it. Give it a relevant title and corresponding comment such that anyone in our team can understand it with minimal context.  
 
-You must assign somene to work on every issues, either yourself or someone else. There can be multiple people working on a single issue.
+You should assign someone to work on an issue, either yourself or someone else. There can be multiple people working on a single issue.
 
 If you see a bug or feature that needs to be addressed now or in the future, you should always add an issue, even if you can't work on it right now or if it's not your issue.
 
