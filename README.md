@@ -25,7 +25,7 @@ class DevelopmentConfig(Config):
 	PASSWORD = ...
 ```
 
-These details are the credentials to access your local Splunk instance.
+These details are the credentials to access your local Splunk instance. Except your standard splunk port will not work - you have to find your management port. You can find this under `checking mgmt port : 8089` in the terminal when you start the Splunk server. Default is 8089.
 
 For further details about configuration, please follow the below link.
 
