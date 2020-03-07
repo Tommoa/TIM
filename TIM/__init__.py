@@ -3,11 +3,16 @@ from time import sleep
 import splunklib.results as results
 import splunklib.client as client
 from flask import Flask, jsonify
+from flask_cors import CORS
 
 def create_app(test_config=None):
     
     # Instaniate Flask class to use as app
     app = Flask(__name__, instance_relative_config=True)
+
+    # Set Up CORS
+    cors = CORS(app)
+    app.config['CORS_HEADERS'] = 'Content-Type'
 
     # Load config
     if app.config["ENV"] == "development":
