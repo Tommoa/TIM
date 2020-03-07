@@ -1,8 +1,11 @@
 import functools
 import os
 from time import sleep
+
 import splunklib.results as results
 import splunklib.client as client
+
+from flask_cors import cross_origin
 
 from flask import (
     Blueprint, jsonify, flash, g, redirect, render_template, request, session, url_for
@@ -13,6 +16,7 @@ from flask import current_app as app
 bp = Blueprint('get_id', __name__, url_prefix='/get_id')
 
 @bp.route('/')
+@cross_origin()
 def ids():
   # Set up config
   HOST = app.config['HOST']
