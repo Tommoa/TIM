@@ -37,9 +37,10 @@ https://pythonise.com/feed/flask/flask-configuration-files#loading-a-config-file
 #### For Windows:
 `runTIM.cmd` is a simple Windows Command Script to run the flask instance.
 
-#### For Mac or Linux:
+#### For Mac or Linux (using venv):
 Run these commands
 ```
+. venv/bin/activate 
 export FLASK_APP=TIM
 export FLASK_ENV=development
 flask run
