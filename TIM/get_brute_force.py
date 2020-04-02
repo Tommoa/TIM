@@ -77,7 +77,6 @@ def get_brute_force():
 
     for result in reader:
         if isinstance(result, dict):
-            print(result)
             brute_force_dets.append({
                 "username": result['UserName'],
                 "start_times": result['start_times'],
