@@ -4,7 +4,6 @@ from time import sleep
 import splunklib.results as results
 import splunklib.client as client
 import database
-import tinydb
 
 
 from flask import (
@@ -23,3 +22,4 @@ def get_brute_force():
     print (db.blacklist_table.search(tinydb.where('id') == 12345678))
     
     return
+    
