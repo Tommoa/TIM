@@ -4,6 +4,8 @@ import splunklib.results as results
 import splunklib.client as client
 from flask import Flask, jsonify
 from flask_cors import CORS
+import atexit 
+from apscheduler.schedulers.background import BackgroundScheduler 
 
 def create_app(test_config=None):
     
@@ -34,4 +36,18 @@ def create_app(test_config=None):
     app.register_blueprint(get_brute_force.bp)
     app.register_blueprint(get_email_header.bp)
 
-    return app
+    testScheduler()
+
+    return app 
+
+def printScheduler(): 
+    print("Scheduler is alive!") 
+ 
+#@app.before_first_request 
+def testScheduler():
+    sched = BackgroundScheduler(daemon=True)
+    sched.add_job(printScheduler,'interval',seconds=5)
+    sched.start()
+ 
+    # Shut down the scheduler when exiting the app
+    atexit.register(lambda: sched.shutdown(wait=False))
