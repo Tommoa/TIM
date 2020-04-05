@@ -30,12 +30,13 @@ def get_brute_force():
 
     # Define brute force parameters
     # TODO: Create config file to define threat identification parameters.
-    time_window = "5m" #
+    time_window = "5m" 
     num_attempts_thresh = "3"
     num_failures_thresh = "3"
 
     # Generate other necessary parameters for search
     exec_mode = {"exec_mode": "normal"}
+    # Get number representing window width from time_window spl arg 
     # TODO: Delta will correctly fail if time_window Splunk SPL string is not in
     # valid format - add proper exception handling and checks.
     delta_t = int(findall(r'\d+', time_window)[0])
