@@ -1,6 +1,6 @@
 import functools
 import os
-from re import findall
+from re import search
 import splunklib.results as results
 import splunklib.client as client
 from time import sleep
@@ -37,9 +37,13 @@ def get_brute_force():
     # Generate other necessary parameters for search
     exec_mode = {"exec_mode": "normal"}
     # Get number representing window width from time_window spl arg 
-    # TODO: Delta will correctly fail if time_window Splunk SPL string is not in
-    # valid format - add proper exception handling and checks.
-    delta_t = int(findall(r'\d+', time_window)[0])
+    match = search(r'\d+', time_window)
+    if match:
+        delta_t = int(match[0])
+    else:
+        msg = "Time window parameter '{}' not in correct format.".format(
+                time_window)
+        exit(msg)
 
     search_string = """
         search * is-ise (cise_passed_authentications
