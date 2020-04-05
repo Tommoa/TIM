@@ -3,6 +3,7 @@ import os
 from time import sleep
 import splunklib.results as results
 import splunklib.client as client
+from . import database
 
 from flask import (
     Blueprint, jsonify, flash, g, redirect, render_template, request, session, url_for
