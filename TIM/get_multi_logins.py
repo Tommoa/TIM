@@ -57,13 +57,9 @@ def get_multi_logins():
     job = service.jobs.create(search_string, **exec_mode)
 
     # Wait until search is completed
-    while True:
-        while not job.is_ready():
-            pass
-
-        if(job["isDone"]):
-            break
-
+    # TODO: Properly handle pending searches blocking whole thread. Maybe
+    # 'lib/concurrent/futures/'.
+    while not job.is_ready() and not job["isDone"]:
         sleep(2)
 
     multi_login_dets = []
