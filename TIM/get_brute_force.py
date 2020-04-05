@@ -38,12 +38,13 @@ def get_brute_force():
     exec_mode = {"exec_mode": "normal"}
     # Get number representing window width from time_window spl arg 
     match = search(r'\d+', time_window)
+    # TODO: Process and check user inputs externally, with exceptions. 
     if match:
         delta_t = int(match[0])
     else:
         msg = "Time window parameter '{}' not in correct format.".format(
                 time_window)
-        exit(msg)
+        raise ValueError(msg)
 
     search_string = """
         search * is-ise (cise_passed_authentications
