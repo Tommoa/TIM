@@ -29,11 +29,12 @@ def get_multi_logins():
 
     # Define multi-login threat parameters
     # TODO: Create config file to define threat identification parameters.
-    time_window = "5m" #
+    time_window = "5m" 
     unique_logins_thresh = "0"
 
     # Generate other necessary parameters for search
     exec_mode = {"exec_mode": "normal"}
+    # Get number representing window width from time_window spl arg 
     # TODO: Delta will correctly fail if time_window Splunk SPL string is not in
     # valid format - add proper exception handling and checks.
     delta_t = int(findall(r'\d+', time_window)[0])
