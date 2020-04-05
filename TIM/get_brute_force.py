@@ -3,6 +3,8 @@ import os
 from time import sleep
 import splunklib.results as results
 import splunklib.client as client
+from . import database
+
 
 from flask import (
     Blueprint, jsonify, flash, g, redirect, render_template, request, session, url_for
@@ -14,4 +16,9 @@ bp = Blueprint('get_brute_force', __name__, url_prefix='/get_brute_force')
 
 @bp.route('/')
 def get_brute_force():
-    return "Brute Force"
+    
+    db = database.db()
+    db.blacklist_table.insert({'id': 12345678, 'time': '09/02/20 12:30', 'threat': 'low', 'message': '20 failed log in attempts'})
+    print (db.blacklist_table.search(tinydb.where('id') == 12345678))
+    
+    return
