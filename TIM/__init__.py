@@ -5,15 +5,6 @@ import splunklib.client as client
 from flask import Flask, jsonify
 from flask_cors import CORS
 
-class Config(object):
-  SECRET_KEY = 'dev'
-
-class ProductionConfig(Config):
-  HOST = "47.74.86.174"
-  PORT = 8089
-  USERNAME = "Group1"
-  PASSWORD = "Group1Password"
-
 def create_app(test_config=None):
     
     # Instaniate Flask class to use as app
