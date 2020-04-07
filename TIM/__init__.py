@@ -28,9 +28,10 @@ def create_app(test_config=None):
     
     # register blueprints e.g. endpoints
     from . import get_id, get_mac
-    from . import get_website_blacklist, get_brute_force, get_multi_logins
+    from . import get_website_blacklist, get_brute_force, get_multi_logins, test
 
     app.register_blueprint(get_id.bp)
+    app.register_blueprint(test.bp)
     app.register_blueprint(get_mac.bp)
     app.register_blueprint(get_website_blacklist.bp)
     app.register_blueprint(get_brute_force.bp)
