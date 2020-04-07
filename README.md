@@ -50,4 +50,15 @@ flask run
 Currently there is only one endpoint - `get_id.py`. 
 
 ## Development
+
 ## Production
+
+If there are any more packages that are used, add them to the requirements.txt file.
+
+To run the docker build on the server, run these 2 commands:
+```
+docker build -t vm_docker_flask .
+docker run -d --name my_container_flask -p 5000:5000 vm_docker_flask
+```
+
+They will expose the server on port 5000. You can test it out by trying `{ip}:5000/test/` but replace {ip} with the correct ip address.
