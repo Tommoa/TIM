@@ -1,9 +1,9 @@
 import functools
 import os
 from re import search
+from time import sleep
 import splunklib.results as results
 import splunklib.client as client
-from time import sleep
 
 from flask import (
     Blueprint, jsonify, flash, g, redirect, render_template, request, session, url_for
@@ -11,10 +11,10 @@ from flask import (
 
 from flask import current_app as app
 
-bp = Blueprint('get_brute_force', __name__, url_prefix='/get_brute_force')
+bp = Blueprint('get_multi_logins', __name__, url_prefix='/get_multi_logins')
 
 @bp.route('/')
-def get_brute_force():
+def get_multi_logins():
     # Set up config
     HOST = app.config['HOST']
     PORT = app.config['PORT']
@@ -27,11 +27,10 @@ def get_brute_force():
         username=USERNAME,
         password=PASSWORD)
 
-    # Define brute force parameters
+    # Define multi-login threat parameters
     # TODO: Create config file to define threat identification parameters.
     time_window = "5m" 
-    num_attempts_thresh = "3"
-    num_failures_thresh = "3"
+    unique_logins_thresh = "0"
 
     # Generate other necessary parameters for search
     exec_mode = {"exec_mode": "normal"}
@@ -47,23 +46,19 @@ def get_brute_force():
 
     search_string = """
         search * is-ise (cise_passed_authentications
-        OR (CISE_Failed_Attempts AND "FailureReason=24408"))
+        AND RadiusFlowType=Wireless802_1x)
         | sort 0 _time
         | bin _time span={}
-        | stats count(eval(searchmatch("CISE_Failed_Attempts")))
-        AS num_failures count(eval(searchmatch("cise_passed_authentications")))
-        AS num_successes, values(EndPointMACAddress) as macs BY _time UserName
+        | stats dc(UserName) AS unique_logins, values(UserName) AS usernames
+        BY _time EndPointMACAddress
         | streamstats time_window=5m min(_time) AS start,  max(_time) AS end,
-        sum(num_failures) AS num_failures, sum(num_successes) AS num_sucesses
-        BY UserName
+        sum(unique_logins) AS logins BY EndPointMACAddress
         | eval _time = start, end = start + {}
-        | eval num_attempts = num_sucesses + num_failures
-        | where num_attempts >= {} AND num_successes == 0 AND num_failures >= {}
-        | stats values(start) as start_times, values(end) as end_times,
-        values(macs) as macs, values(num_failures) as num_failures,
-        values(num_successes) as num_successes,
-        values(num_attempts) as num_attempts by UserName
-    """.format(time_window, delta_t, num_attempts_thresh, num_failures_thresh)
+        | where unique_logins >= {}
+        | stats values(start) AS start_times, values(end) AS end_times,
+        values(usernames) AS usernames, values(unique_logins) AS unique_logins
+        BY EndPointMACAddress
+    """.format(time_window, delta_t, unique_logins_thresh)
 
     job = service.jobs.create(search_string, **exec_mode)
 
@@ -73,20 +68,17 @@ def get_brute_force():
     while not job.is_ready() and not job["isDone"]:
         sleep(2)
 
-    brute_force_dets = []
+    multi_login_dets = []
     reader = results.ResultsReader(job.results())
-
+    
     for result in reader:
         if isinstance(result, dict):
-            brute_force_dets.append({
-                "username": result['UserName'],
+            multi_login_dets.append({
+                "mac": result['EndPointMACAddress'],
                 "start_times": result['start_times'],
                 "end_times": result['end_times'],
-                "macs": result['macs'],
-                "num_failures": result['num_failures'],
-                "num_successes": result['num_successes'],
-                "num_attempts": result['num_attempts']
+                "usernames": result['usernames'],
+                "unique_logins": result['unique_logins']
             })
 
-    return jsonify(brute_force_dets)
-
+    return jsonify(multi_login_dets)
