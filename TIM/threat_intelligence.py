@@ -1,11 +1,10 @@
 from re import search
 
-def gen_brute_force_query():
-    # Define brute force parameters
-    # TODO: Create config file to define threat identification parameters.
-    time_window = "5m"
-    num_attempts_thresh = "3"
-    num_failures_thresh = "3"
+def gen_brute_force_query(config):
+    # Retrieve brute force parameters
+    time_window = config['brute_force']["time_window"]
+    num_attempts_thresh = config['brute_force']["num_attempts_thresh"]
+    num_failures_thresh = config['brute_force']["num_failures_thresh"]
 
     # Generate other necessary parameters for search
     threat_name = "brute_force"
@@ -61,11 +60,11 @@ def gen_brute_force_query():
 
     return search_query
 
-def gen_multi_logins_query():
+def gen_multi_logins_query(config):
     # Define multi-login threat parameters
     # TODO: Create config file to define threat identification parameters.
-    time_window = "5m"
-    unique_logins_thresh = "1"
+    time_window = config['multi_logins']["time_window"]
+    unique_logins_thresh = config['multi_logins']["unique_logins_thresh"]
 
     # Generate other necessary parameters for search
     threat_name = "multi_logins"
@@ -111,29 +110,28 @@ def gen_multi_logins_query():
 
     return search_query
 
-def gen_final_threat_query():
+def gen_complete_threat_query(config):
     threat_querys = []
-    threat_query_generators = { "Brute force": gen_brute_force_query,
-                                "Multiple logins": gen_multi_logins_query
+    threat_query_generators = { "brute_force": gen_brute_force_query,
+                                "multi_logins": gen_multi_logins_query
                                 }
     for threat, threat_query_generator in threat_query_generators.values():
         try:
-            # if threat enabled
-            threat_querys.append(threat_query_generator())
+            if config[threat]['enabled']:
+                threat_querys.append(threat_query_generator())
         except ValueError as e:
             print(str(e))
             print(threat + " threat detection disabled.")
             continue
 
     try:
-        final_threat_query = threat_querys.pop()
+        complete_threat_query = threat_querys.pop()
     except IndexError as e:
         msg = ("Threat detection fully inactive due to user threat "
                 "intelligence configuration or input.")
         raise UserWarning(msg)
 
-    final_threat_query = threat_querys.pop()
     for threat_query in threat_querys:
-        final_threat_query += " | append [" + threat_query + "]"
+        complete_threat_query += " | append [" + threat_query + "]"
 
-    return final_threat_query
+    return complete_threat_query
