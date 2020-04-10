@@ -51,10 +51,10 @@ def gen_brute_force_query(config):
         num_sucesses + num_failures, threat = "{}"
         | where num_attempts >= {} AND num_successes == 0 AND num_failures >= {}
         | rename UserName as username
-        | stats list(threat) as threat, list(start) as time,
-        list(num_failures) as num_failures,
+        | stats list(start) as time,
+        list(mac) as mac, list(num_failures) as num_failures,
         list(num_successes) as num_successes,
-        list(num_attempts) as num_attempts, list(username) as username by mac
+        list(num_attempts) as num_attempts, list(username) as username by threat
         """.format(time_window, time_window, delta_t, threat_name,
         num_attempts_thresh, num_failures_thresh)
 
@@ -102,9 +102,9 @@ def gen_multi_logins_query(config):
             | eval _time = start, end = start + {}, threat = "{}"
             | where unique_logins >= {}
             | rename EndPointMACAddress AS mac
-            | stats list(threat) AS threat, list(start) AS time,
-             list(unique_logins) AS unique_logins, list(username) AS username
-             BY mac
+            | stats list(start) AS time,
+            list(mac) as mac, list(unique_logins) AS unique_logins,
+            list(username) AS username by threat
             """.format(time_window, time_window, delta_t, threat_name,
             unique_logins_thresh)
 
@@ -115,10 +115,10 @@ def gen_complete_threat_query(config):
     threat_query_generators = { "brute_force": gen_brute_force_query,
                                 "multi_logins": gen_multi_logins_query
                                 }
-    for threat, threat_query_generator in threat_query_generators.values():
+    for threat, threat_query_generator in threat_query_generators.items():
         try:
             if config[threat]['enabled']:
-                threat_querys.append(threat_query_generator())
+                threat_querys.append(threat_query_generator(config))
         except ValueError as e:
             print(str(e))
             print(threat + " threat detection disabled.")
