@@ -26,17 +26,19 @@ def gen_brute_force_query():
         | bin _time span={}
         | stats count(eval(searchmatch("CISE_Failed_Attempts")))
         AS num_failures count(eval(searchmatch("cise_passed_authentications")))
-        AS num_successes, values(EndPointMACAddress) as macs BY _time UserName
-        | streamstats time_window=5m min(_time) AS start,  max(_time) AS end,
+        AS num_successes, values(EndPointMACAddress) as mac BY _time UserName
+        | streamstats time_window={} min(_time) AS start,  max(_time) AS end,
         sum(num_failures) AS num_failures, sum(num_successes) AS num_sucesses
         BY UserName
-        | eval _time = start, end = start + {}
-        | eval num_attempts = num_sucesses + num_failures
+        | eval _time = start, end = start + {}, num_attempts =
+        num_sucesses + num_failures, threat = "{}"
         | where num_attempts >= {} AND num_successes == 0 AND num_failures >= {}
-        | stats values(start) as start_times, values(end) as end_times,
-        values(macs) as macs, values(num_failures) as num_failures,
-        values(num_successes) as num_successes,
-        values(num_attempts) as num_attempts by UserName
-    """.format(time_window, delta_t, num_attempts_thresh, num_failures_thresh)
+        | rename UserName as username
+        | stats list(threat) as threat, list(start) as time,
+        list(num_failures) as num_failures,
+        list(num_successes) as num_successes,
+        list(num_attempts) as num_attempts, list(username) as username by mac
+        """.format(time_window, time_window, delta_t, threat_name,
+        num_attempts_thresh, num_failures_thresh)
 
     return search_query
