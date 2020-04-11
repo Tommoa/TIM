@@ -23,6 +23,10 @@ class DevelopmentConfig(Config):
 	PORT = ...
 	USERNAME = ...
 	PASSWORD = ...
+	POLLING = True
+	POLLING_INTERVAL = 80 # seconds
+	# Threat intelligence user config file
+	TI_CONFIG = "threat_intelligence_config.yaml"
 ```
 
 These details are the credentials to access your local Splunk instance. Except your standard splunk port will not work - you have to find your management port. You can find this under `checking mgmt port : 8089` in the terminal when you start the Splunk server. Default is 8089.
@@ -40,14 +44,14 @@ https://pythonise.com/feed/flask/flask-configuration-files#loading-a-config-file
 #### For Mac or Linux (using venv):
 Run these commands
 ```
-. venv/bin/activate 
+. venv/bin/activate
 export FLASK_APP=TIM
 export FLASK_ENV=development
 flask run
 ```
 
 
-Currently there is only one endpoint - `get_id.py`. 
+Currently there is only one endpoint - `get_id.py`.
 
 ## Development
 
