@@ -7,8 +7,8 @@ import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 from .threat_intelligence import gen_complete_threat_query
 from . import database
-import tinydb
 import yaml
+from datetime import datetime
 
 def create_app(test_config=None):
 
@@ -40,13 +40,14 @@ def create_app(test_config=None):
     app.register_blueprint(get_mac.bp)
     app.register_blueprint(get_website_blacklist.bp)
 
-    poll_splunk_for_threats(app)
+    # Start scheduler
+    if app.config['POLLING']: poll_splunk_for_threats(app)
+
     return app
 
-def detect_threats(app, db, threat_query):
+def detect_threats(app, db, threat_query, config):
     print("Detecting_threats.")
-    
-    # Set up config
+    # Set up Splunk config
     HOST = app.config['HOST']
     PORT = app.config['PORT']
     USERNAME = app.config['USERNAME']
@@ -56,9 +57,8 @@ def detect_threats(app, db, threat_query):
         port=PORT,
         username=USERNAME,
         password=PASSWORD)
-    # stats limit
 
-    # Generate necessary parameters for search and run search
+    # Generate necessary search parameters and run search
     kwargs_search = {"exec_mode": "blocking"}
     job = service.jobs.create(threat_query, **kwargs_search)
 
@@ -67,45 +67,57 @@ def detect_threats(app, db, threat_query):
     for result in reader:
         if isinstance(result, dict):
             if result['threat'] == "brute_force":
-                for (threat, time, mac, username, num_attempts, num_failures,
+                for (_, time, mac, username, num_attempts, num_failures,
                         num_successes) in zip(*list(result.values())):
                     brute_force_threats = {
                         "username": username,
-                        "threat": threat,
+                        "threat": result['threat'],
                         "time": time,
                         "mac": mac,
                         "num_failures": num_failures,
                         "num_successes": num_successes,
-                        "num_attempts": num_attempts
-                }
+                        "num_attempts": num_attempts,
+                        "threat_level": config[result['threat']]['threat_level']
+                    }
                     db.brute_force_table.insert(brute_force_threats)
             elif result['threat'] == "multi_logins":
-                for (threat, time, mac, unique_logins, username) in zip(
+                for (_, time, mac, unique_logins, username) in zip(
                         *list(result.values())):
                     multi_logins_threats = {
                         "username": username,
-                        "threat": threat,
+                        "threat": result['threat'],
                         "time": time,
                         "mac": mac,
-                        "unique_logins": unique_logins
+                        "unique_logins": unique_logins,
+                        "threat_level": config[result['threat']]['threat_level']
                     }
                     db.multi_logins_table.insert(multi_logins_threats)
 
-
-#@app.before_first_request
 def poll_splunk_for_threats(app):
     db = database.db()
-    polling_interval = app.config['POLLING_INTERVAL']
-    with open(app.config['TI_CONFIG']) as f: # FileNotFoundError
-        config = yaml.safe_load(f)
+    complete_threat_query = None
+    # Generate Splunk query for polling all correctly activated threats
     try:
+        with open(app.config['TI_CONFIG']) as f:
+            config = yaml.safe_load(f)
         complete_threat_query = gen_complete_threat_query(config)
+    except FileNotFoundError as e:
+        msg = ("Threat intelligence user configuration file {} could not be "
+                "found. Threat detection disabled.").format(
+                app.config['TI_CONFIG'])
+        print(msg)
+    except UserWarning as e:
+        print(repr(e))
+
+    # Start background Splunk polling if threat detection was
+    # sucessfully enabled
+    if complete_threat_query is not None:
         sched = BackgroundScheduler(daemon=True)
         sched.add_job(detect_threats, 'interval',
-            [app, db, complete_threat_query], seconds=polling_interval)
+            [app, db, complete_threat_query, config],
+            seconds=app.config['POLLING_INTERVAL'],
+            next_run_time=datetime.now())
         sched.start()
-    except UserWarning as e: # comp none?
-        print(repr(e))
 
     # Shut down the scheduler when exiting the app
     atexit.register(lambda: sched.shutdown(wait=False))
