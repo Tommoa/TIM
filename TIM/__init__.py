@@ -1,12 +1,9 @@
 import os
-import splunklib.results as results
-import splunklib.client as client
 from flask import Flask, jsonify
 from flask_cors import CORS
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
-from .threat_intelligence import gen_complete_threat_query
-from . import database
+from .threat_intelligence import gen_complete_threat_query, detect_threats
 import yaml
 from datetime import datetime
 
@@ -44,54 +41,6 @@ def create_app(test_config=None):
     if app.config['POLLING']: poll_splunk_for_threats(app)
 
     return app
-
-def detect_threats(app, db, threat_query, config):
-    print("Detecting_threats.")
-    # Set up Splunk config
-    HOST = app.config['HOST']
-    PORT = app.config['PORT']
-    USERNAME = app.config['USERNAME']
-    PASSWORD = app.config['PASSWORD']
-    service = client.connect(
-        host=HOST,
-        port=PORT,
-        username=USERNAME,
-        password=PASSWORD)
-
-    # Generate necessary search parameters and run search
-    kwargs_search = {"exec_mode": "blocking"}
-    job = service.jobs.create(threat_query, **kwargs_search)
-
-    # Process results and write to database
-    reader = results.ResultsReader(job.results())
-    for result in reader:
-        if isinstance(result, dict):
-            if result['threat'] == "brute_force":
-                for (_, time, mac, username, num_attempts, num_failures,
-                        num_successes) in zip(*list(result.values())):
-                    brute_force_threats = {
-                        "username": username,
-                        "threat": result['threat'],
-                        "time": time,
-                        "mac": mac,
-                        "num_failures": num_failures,
-                        "num_successes": num_successes,
-                        "num_attempts": num_attempts,
-                        "threat_level": config[result['threat']]['threat_level']
-                    }
-                    db.brute_force_table.insert(brute_force_threats)
-            elif result['threat'] == "multi_logins":
-                for (_, time, mac, unique_logins, username) in zip(
-                        *list(result.values())):
-                    multi_logins_threats = {
-                        "username": username,
-                        "threat": result['threat'],
-                        "time": time,
-                        "mac": mac,
-                        "unique_logins": unique_logins,
-                        "threat_level": config[result['threat']]['threat_level']
-                    }
-                    db.multi_logins_table.insert(multi_logins_threats)
 
 def poll_splunk_for_threats(app):
     db = database.db()
