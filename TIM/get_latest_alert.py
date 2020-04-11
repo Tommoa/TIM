@@ -26,8 +26,8 @@ def get_latest_alert():
         return response
 
     # Get latest alert
-    alerts.sort(key=lambda alert: alert["time"])
-    latest_alert = alerts[-1]
+    alerts.sort(key=lambda alert: alert["time"], reverse=True)
+    latest_alert = alerts[0]
 
     # Prepare response
     timestamp = int(latest_alert['time'])
