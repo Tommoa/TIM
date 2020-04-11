@@ -1,34 +1,32 @@
 from re import search
 
 def gen_brute_force_query(config):
-    # Retrieve brute force parameters
+    threat_name = "brute_force"
+
+    # Get brute force threat parameters
     time_window = config['brute_force']["time_window"]
     num_attempts_thresh = config['brute_force']["num_attempts_thresh"]
     num_failures_thresh = config['brute_force']["num_failures_thresh"]
 
-    # Generate other necessary parameters for search
-    threat_name = "brute_force"
-    # Get number representing window width from time_window spl arg
+    # Extract window width from time_window SPL arg
     match = search(r'\d+', time_window)
-    # TODO: Process and check user inputs externally, with exceptions.
-    try:
-        msg = ("Brute force threat parameter (number of attempts threshold) "
-                "'{}' is not a base 10 integer.").format(num_attempts_thresh)
-        num_attempts_thresh_int = int(num_attempts_thresh)
-        msg = ("Brute force threat parameter (number of failures threshold) "
-                "'{}' is not a base 10 integer.").format(num_failures_thresh)
-        num_failures_thresh_int = int(num_failures_thresh)
-    except ValueError as e:
-        raise ValueError(msg)
 
-    if num_attempts_thresh_int < 0:
-        msg = ("Brute force threat parameter (number of attempts threshold)"
-                "'{}' is not a positive integer.").format(time_window)
-        raise ValueError(msg)
-    if num_failures_thresh_int < 0:
-        msg = ("Multiple Logins threat parameter (unique logins threshold) '{}'"
-                "is not a positive integer.").format(time_window)
-        raise ValueError(msg)
+    # Validate threat parameters provided by user
+    thresh_params = { "number of attempts threshold": num_attempts_thresh,
+                      "number of failures threshold": num_failures_thresh
+                      }
+    for thresh_name, thresh in thresh_params.items():
+        try:
+            thresh_int = int(thresh)
+        except ValueError as e:
+            msg = ("Brute force threat parameter ({}) '{}' is not a base 10 "
+                    "integer.").format(thresh_name, thresh)
+            raise ValueError(msg)
+        if thresh_int < 0:
+            msg = ("Brute force threat parameter ({}) '{}' is not a positive "
+                    "integer.").format(thresh_name, thresh_int)
+            raise ValueError(msg)
+
     if match:
         delta_t = int(match[0])
     else:
@@ -61,16 +59,16 @@ def gen_brute_force_query(config):
     return search_query
 
 def gen_multi_logins_query(config):
-    # Define multi-login threat parameters
-    # TODO: Create config file to define threat identification parameters.
+    threat_name = "multi_logins"
+
+    # Get multi-login threat parameters
     time_window = config['multi_logins']["time_window"]
     unique_logins_thresh = config['multi_logins']["unique_logins_thresh"]
 
-    # Generate other necessary parameters for search
-    threat_name = "multi_logins"
-    # Get number representing window width from time_window spl arg
+    # Extract window width from time_window SPL arg
     match = search(r'\d+', time_window)
-    # TODO: Process and check user inputs externally, with exceptions.
+
+    # Validate threat parameters provided by user
     try:
         unique_logins_thresh_int = int(unique_logins_thresh)
     except ValueError as e:
@@ -80,8 +78,9 @@ def gen_multi_logins_query(config):
 
     if unique_logins_thresh_int < 0:
         msg = ("Multiple logins threat parameter (unique logins threshold) '{}'"
-                "is not a positive integer.").format(time_window)
+                "is not a positive integer.").format(unique_logins_thresh_int)
         raise ValueError(msg)
+
     if match:
         delta_t = int(match[0])
     else:
@@ -111,27 +110,34 @@ def gen_multi_logins_query(config):
     return search_query
 
 def gen_complete_threat_query(config):
-    threat_querys = []
+    print("Attempting to activate threat detection...")
+    # Construct threat queries for correctly enabled threats
+    threat_queries = []
     threat_query_generators = { "brute_force": gen_brute_force_query,
                                 "multi_logins": gen_multi_logins_query
                                 }
     for threat, threat_query_generator in threat_query_generators.items():
-        try:
-            if config[threat]['enabled']:
-                threat_querys.append(threat_query_generator(config))
-        except ValueError as e:
-            print(str(e))
-            print(threat + " threat detection disabled.")
-            continue
+        if config[threat]['enabled']:
+            try:
+                threat_queries.append(threat_query_generator(config))
+                continue
+            except ValueError as e:
+                print(str(e))
 
+        msg = ("'{}' threat detection disabled.").format(threat)
+        print(msg)
+
+    # Check if at least one threat query was returned, if not just warn the user
     try:
-        complete_threat_query = threat_querys.pop()
+        complete_threat_query = threat_queries.pop()
     except IndexError as e:
         msg = ("Threat detection fully inactive due to user threat "
                 "intelligence configuration or input.")
         raise UserWarning(msg)
 
-    for threat_query in threat_querys:
+    # Construct final Splunk query for detecting all activated threats
+    print("Threat detection functional.")
+    for threat_query in threat_queries:
         complete_threat_query += " | append [" + threat_query + "]"
 
     return complete_threat_query
