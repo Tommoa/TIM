@@ -30,12 +30,13 @@ def create_app(test_config=None):
 
     # register blueprints e.g. endpoints
     from . import get_id, get_mac
-    from . import get_website_blacklist, test
+    from . import get_website_blacklist, test, get_latest_alert
 
     app.register_blueprint(get_id.bp)
     app.register_blueprint(test.bp)
     app.register_blueprint(get_mac.bp)
     app.register_blueprint(get_website_blacklist.bp)
+    app.register_blueprint(get_latest_alert.bp)
 
     # Start scheduler
     if app.config['POLLING']: poll_splunk_for_threats(app)
@@ -43,7 +44,6 @@ def create_app(test_config=None):
     return app
 
 def poll_splunk_for_threats(app):
-    db = database.db()
     complete_threat_query = None
     # Generate Splunk query for polling all correctly activated threats
     try:
@@ -63,7 +63,7 @@ def poll_splunk_for_threats(app):
     if complete_threat_query is not None:
         sched = BackgroundScheduler(daemon=True)
         sched.add_job(detect_threats, 'interval',
-            [app, db, complete_threat_query, config],
+            [app, complete_threat_query, config],
             seconds=app.config['POLLING_INTERVAL'],
             next_run_time=datetime.now())
         sched.start()

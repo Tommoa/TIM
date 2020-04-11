@@ -146,7 +146,7 @@ def gen_complete_threat_query(config):
 
     return complete_threat_query
 
-def detect_threats(app, db, threat_query, config):
+def detect_threats(app, threat_query, config):
     print("Detecting_threats.")
     # Set up Splunk config
     HOST = app.config['HOST']
@@ -164,6 +164,7 @@ def detect_threats(app, db, threat_query, config):
     job = service.jobs.create(threat_query, **kwargs_search)
 
     # Process results and write to database
+    db = database.db()
     reader = results.ResultsReader(job.results())
     for result in reader:
         if isinstance(result, dict):
@@ -193,3 +194,4 @@ def detect_threats(app, db, threat_query, config):
                         "threat_level": config[result['threat']]['threat_level']
                     }
                     db.multi_logins_table.insert(multi_logins_threats)
+    db.db.close()
