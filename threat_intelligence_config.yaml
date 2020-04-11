@@ -3,10 +3,10 @@ brute_force:
   time_window: 5m
   num_attempts_thresh: 3
   num_failures_thresh: 3
-  threat_level: 3
+  threat_level: medium
 
 multi_logins:
   enabled: yes
   time_window: 5m
   unique_logins_thresh: 1
-  threat_level: 1
+  threat_level: low
