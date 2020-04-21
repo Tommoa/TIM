@@ -30,7 +30,7 @@ def create_app(test_config=None):
 
     # register blueprints e.g. endpoints
     from . import get_id, get_mac
-    from . import get_website_blacklist, test,
+    from . import get_website_blacklist, test
 
     app.register_blueprint(get_id.bp)
     app.register_blueprint(test.bp)
@@ -65,7 +65,6 @@ def poll_splunk_for_threats(app):
             [app, complete_threat_query, config],
             seconds=app.config['POLLING_INTERVAL'],
             next_run_time=datetime.now())
+        # Shut down the scheduler when exiting the app
+        atexit.register(lambda: sched.shutdown(wait=False))
         sched.start()
-
-    # Shut down the scheduler when exiting the app
-    atexit.register(lambda: sched.shutdown(wait=False))
