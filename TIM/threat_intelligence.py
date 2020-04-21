@@ -38,7 +38,14 @@ def gen_brute_force_query(config):
                 "correct SPL format.").format(time_window)
         raise ValueError(msg)
 
-    search_query = """
+    search_query = get_brute_force_string(time_window, delta_t, threat_name,
+                                    num_attempts_thresh, num_failures_thresh)
+
+    return search_query
+
+def get_brute_force_string(time_window, delta_t, threat_name,
+                            num_attempts_thresh, num_failures_thresh):
+    brute_force_string = """
         search * is-ise (cise_passed_authentications
         OR (CISE_Failed_Attempts AND "FailureReason=24408"))
         | sort 0 _time
@@ -60,7 +67,7 @@ def gen_brute_force_query(config):
         """.format(time_window, time_window, delta_t, threat_name,
         num_attempts_thresh, num_failures_thresh)
 
-    return search_query
+    return brute_force_string
 
 def gen_multi_logins_query(config):
     threat_name = "multi_logins"
@@ -92,7 +99,15 @@ def gen_multi_logins_query(config):
                 "correct SPL format.").format(time_window)
         raise ValueError(msg)
 
-    search_query = """
+    search_query = get_multi_logins_string(time_window, delta_t,
+                                            threat_name, unique_logins_thresh)
+
+    return search_query
+
+def get_multi_logins_string(time_window, delta_t, threat_name,
+                            unique_logins_thresh):
+
+    multi_logins_string = """
             search * is-ise (cise_passed_authentications
             AND RadiusFlowType=Wireless802_1x)
             | sort 0 _time
@@ -111,7 +126,7 @@ def gen_multi_logins_query(config):
             """.format(time_window, time_window, delta_t, threat_name,
             unique_logins_thresh)
 
-    return search_query
+    return multi_logins_string
 
 def gen_complete_threat_query(config):
     print("Attempting to activate threat detection...")
@@ -124,6 +139,8 @@ def gen_complete_threat_query(config):
         if config[threat]['enabled']:
             try:
                 threat_queries.append(threat_query_generator(config))
+                msg = ("'{}' threat detection enabled.").format(threat)
+                print(msg)
                 continue
             except ValueError as e:
                 print(str(e))
