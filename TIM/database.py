@@ -8,4 +8,4 @@ class db:
         self.db = TinyDB('db.json')
         self.brute_force_table = self.db.table('brute_force')
         self.blacklist_table = self.db.table('blacklist')
-        self.multi_login_table = self.db.table('multi_login')
+        self.multi_logins_table = self.db.table('multi_logins')
