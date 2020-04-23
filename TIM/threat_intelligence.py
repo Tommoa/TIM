@@ -212,3 +212,19 @@ def detect_threats(app, threat_query, config):
                     }
                     db.multi_logins_table.insert(multi_logins_threats)
     db.db.close()
+
+def gen_brute_force_desc(threat):
+    # Threat summary for brute force attempt instance
+    description = ("Brute force attempt detected on device '{}' with {} "
+            "login failures and {} login attempts.").format(threat['mac'],
+            threat['num_failures'], threat['num_attempts'])
+
+    return description
+
+def gen_multi_logins_desc(threat):
+    # Threat summary for multiple login attempt instance
+    description = ("{} users logged in to device '{}' within a short space of "
+                "time.").format(threat['unique_logins'],
+                threat['mac'])
+
+    return description
