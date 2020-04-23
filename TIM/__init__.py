@@ -30,12 +30,13 @@ def create_app(test_config=None):
 
     # register blueprints e.g. endpoints
     from . import get_id, get_mac
-    from . import get_website_blacklist, test
+    from . import get_website_blacklist, test, get_latest_alert
 
     app.register_blueprint(get_id.bp)
     app.register_blueprint(test.bp)
     app.register_blueprint(get_mac.bp)
     app.register_blueprint(get_website_blacklist.bp)
+    app.register_blueprint(get_latest_alert.bp)
 
     # Start scheduler
     if app.config['POLLING']: poll_splunk_for_threats(app)
