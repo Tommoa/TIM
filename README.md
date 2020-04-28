@@ -35,6 +35,26 @@ For further details about configuration, please follow the below link.
 
 https://pythonise.com/feed/flask/flask-configuration-files#loading-a-config-file
 
+## Endpoints
+Currently the endpoints are:
+
+- Protected:
+```
+/get_id/
+/get_mac/
+/get_latest_alert/
+```
+- Unprotected
+```
+/login/
+/test/
+```
+
+You will need to get the token from login and pass it in the url like below:
+```
+0.0.0.0:5000/test/?token=INSERT_TOKEN_HERE
+```
+Use any username and password = `Group1Password`
 
 ## Running TIM
 
