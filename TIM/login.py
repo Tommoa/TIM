@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import jwt
 from functools import wraps
 
+from flask_cors import cross_origin 
+ 
 from flask import (
     Blueprint, jsonify, flash, g, redirect, 
     render_template, request, session, url_for,
@@ -16,6 +18,7 @@ from flask import current_app as app
 bp = Blueprint('login', __name__, url_prefix='/login')
 
 @bp.route('/')
+@cross_origin() 
 def login():
     auth = request.authorization
 
