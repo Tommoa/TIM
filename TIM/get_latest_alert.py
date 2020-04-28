@@ -3,6 +3,7 @@ from time import sleep
 from . import database
 from datetime import datetime
 from .threat_intelligence import gen_brute_force_desc, gen_multi_logins_desc
+from . import login
 
 from flask import (
     Blueprint, jsonify, flash, g, redirect, render_template, request, session, url_for
@@ -13,6 +14,7 @@ from flask import current_app as app
 bp = Blueprint('get_latest_alert', __name__, url_prefix='/get_latest_alert')
 
 @bp.route('/')
+@login.token_required
 def get_latest_alert():
     # Retrieve alerts
     db = database.db()
