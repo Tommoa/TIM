@@ -1,0 +1,34 @@
+name: Continuous Integration
+
+on: [push]
+
+jobs:
+  server:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v1
+      - name: Push to server
+        uses: trendyminds/github-actions-rsync@master
+        with:
+          RSYNC_OPTIONS: -avzr --delete
+          RSYNC_TARGET: /home/group1/TIM
+          RSYNC_SOURCE: /
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.CI_KEY }}
+          SSH_USERNAME: ${{ secrets.CI_USERNAME }}
+          SSH_HOSTNAME: ${{ secrets.CI_HOSTNAME }}
+      - name: Run docker on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.CI_HOSTNAME }}
+          username: ${{ secrets.CI_USERNAME }}
+          key: ${{ secrets.CI_KEY }}
+          script: |
+            docker build -t tim /home/group1/TIM
+            docker create --volumes-from tim_container -p 5000:5000 --name tim_container_tmp tim
+            docker stop tim_container
+            docker start tim_container_tmp
+            docker rm tim_container
+            docker rename tim_container_tmp tim_container
