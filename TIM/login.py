@@ -19,7 +19,7 @@ bp = Blueprint('login', __name__, url_prefix='/login')
 def login():
     auth = request.authorization
 
-    if auth and auth.password == "password":
+    if auth and auth.password == "Group1Password":
         token = jwt.encode({'user' : auth.username, 'exp': datetime.utcnow() + timedelta(hours = 6)}, app.config['SECRET_KEY'])
         return jsonify({'token' : token.decode('UTF-8')})
     
@@ -28,14 +28,18 @@ def login():
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.args.get('token') #http://127.0.0.1:5000/route?token=afjlkasjfl
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
         if not token:
-            return jsonify({'message': 'Token is missing.'}), 403
-        
+            return jsonify({'message': 'Token is missing.'}), 401
+
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'])
         except:
-            return jsonify({'message': 'Token is invalid.'}), 403
-
+            return jsonify({'message': 'Token is invalid.'}), 401
+        
         return f(*args, **kwargs)
     return decorated
