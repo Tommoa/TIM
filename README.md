@@ -49,11 +49,8 @@ Currently the endpoints are:
 /login/
 /test/
 ```
+You will need to get the token from login and pass it in the header 'x-access-token'.
 
-You will need to get the token from login and pass it in the url like below:
-```
-0.0.0.0:5000/test/?token=INSERT_TOKEN_HERE
-```
 Use any username and password = `Group1Password`
 
 ## Running TIM
