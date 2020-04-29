@@ -30,13 +30,14 @@ def create_app(test_config=None):
 
     # register blueprints e.g. endpoints
     from . import get_id, get_mac, login
-    from . import get_website_blacklist, test, get_latest_alert
+    from . import get_website_blacklist, test, get_latest_alert, get_alerts
 
     app.register_blueprint(get_id.bp)
     app.register_blueprint(test.bp)
     app.register_blueprint(get_mac.bp)
     app.register_blueprint(get_website_blacklist.bp)
     app.register_blueprint(get_latest_alert.bp)
+    app.register_blueprint(get_alerts.bp)
     app.register_blueprint(login.bp)
 
     # Start scheduler
