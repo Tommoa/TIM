@@ -4,3 +4,4 @@ APScheduler==3.6.3
 splunk-sdk==1.6.12 
 tinydb==3.15.2
 pyYAML==5.3.1
+PyJWT==1.7.1
