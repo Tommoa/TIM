@@ -21,7 +21,7 @@ geo_locations:
         top_right: [-31.976653, 115.819904]
         bottom_left: [-31.985883, 115.816020]
         bottom_right: [-31.985883, 115.819904]
-      num_nodes: 10
+      num_nodes: 30
       static_node_coordinates:
         enabled: no
       bias_threat_coordinates:
