@@ -31,7 +31,8 @@ def create_app(test_config=None):
 
     # register blueprints e.g. endpoints
     from . import get_id, get_mac, login
-    from . import get_website_blacklist, test, get_latest_alert, get_alerts
+    from . import (get_website_blacklist, test, get_latest_alert, get_alerts,
+                    get_locations)
 
     app.register_blueprint(get_id.bp)
     app.register_blueprint(test.bp)
@@ -40,6 +41,7 @@ def create_app(test_config=None):
     app.register_blueprint(get_latest_alert.bp)
     app.register_blueprint(get_alerts.bp)
     app.register_blueprint(login.bp)
+    app.register_blueprint(get_locations.bp)
 
     # Start scheduler
     if app.config['POLLING']: poll_splunk_for_threats(app)
@@ -49,7 +51,7 @@ def create_app(test_config=None):
 def poll_splunk_for_threats(app):
     complete_threat_query = None
     geo_locations_intel = None
-    
+
     # Generate polling Splunk query for all correctly activated threats and
     # initiate geolocation intelligence if correctly enabled
     try:
