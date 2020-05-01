@@ -294,14 +294,14 @@ def gen_geo_locations_intel(config):
             weights = ([conc] + [eq_prob] * (len(nodes) - 1) if conc is not None
                 else [1 / len(nodes)] * len(nodes))
 
+            geo_locations_intel[location] = {'nodes': nodes, 'weights': weights}
+
         except (TypeError, ValueError) as e:
             msg = ("'Geographical location' threat intelligence for location  "
                 "'{}' cannot be instantiated due to incorrect user "
                 "configuration. The following internal error was "
                 "raised:\n{}").format(location, repr(e))
             print(msg)
-
-        geo_locations_intel[location] = {'nodes': nodes, 'weights': weights}
 
     if len(geo_locations_intel) == 0:
         msg = ("'Geographical location' threat intelligence fully inactive for "
