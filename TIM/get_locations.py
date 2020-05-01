@@ -2,6 +2,7 @@ import os
 from time import sleep
 from . import database
 from datetime import datetime
+from flask_cors import cross_origin
 
 
 from flask import (
