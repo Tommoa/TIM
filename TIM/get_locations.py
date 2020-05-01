@@ -13,6 +13,8 @@ from flask import current_app as app
 bp = Blueprint('get_locations', __name__, url_prefix='/get_locations')
 
 @bp.route('/')
+@cross_origin()
+@login.token_required
 def get_locations():
     # Retrieve alerts
     db = database.db()
@@ -21,7 +23,7 @@ def get_locations():
     db.db.close()
 
     response = "No locations found."
-    
+
     # Retrieve threat locations
     num_locations = 5
     alerts.sort(key=lambda alert: alert["time"], reverse=True)
