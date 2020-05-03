@@ -23,7 +23,7 @@ def login():
     auth = request.authorization
 
     if auth and auth.password == "Group1Password":
-        token = jwt.encode({'user' : auth.username, 'exp': datetime.utcnow() + timedelta(hours = 6)}, app.config['SECRET_KEY'])
+        token = jwt.encode({'user' : auth.username, 'exp': datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'])
         return jsonify({'token' : token.decode('UTF-8')})
     
     return make_response('Could not verify!', 401, {'WWW-Authenticate' : 'Basic realm = "Login Required:'})
@@ -40,7 +40,7 @@ def token_required(f):
             return jsonify({'message': 'Token is missing.'}), 401
 
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'])
+            data = jwt.decode(token, app.config['SPA_SECRET_KEY'])
         except:
             return jsonify({'message': 'Token is invalid.'}), 401
         
