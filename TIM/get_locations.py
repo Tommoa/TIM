@@ -23,7 +23,7 @@ def get_locations():
                 table_name).all() if table_name != 'default']
     db.db.close()
 
-    response = "No locations found."
+    response = []
 
     # Retrieve threat locations
     num_locations = 5
