@@ -1,6 +1,6 @@
 import os
 
-class ProductionConfig(Config):
+class ProductionConfig():
     SPA_SECRET_KEY = os.environ['SPA_SECRET_KEY']
     SPA_HOST = os.environ['SPA_HOST']
     SPA_PORT = os.environ['SPA_PORT']
