@@ -30,12 +30,18 @@ def login():
             token = jwt.encode({'user':username, 'exp':datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'], algorithm='HS256')
             return jsonify({'token' : token.decode('UTF-8')})
 
+<<<<<<< HEAD
     # GET request basic authentication
     else:
         auth = request.authorization
         if auth and auth.password == app.config['TIM_PASSWORD']:
             token = jwt.encode({'user':auth.username, 'exp': datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'], algorithm='HS256')
             return jsonify({'token' : token.decode('UTF-8')})
+=======
+    if auth and auth.password == "Group1Password":
+        token = jwt.encode({'user' : auth.username, 'exp': datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'])
+        return jsonify({'token' : token.decode('UTF-8')})
+>>>>>>> 13d6dbd... Add 'SPA_' prefix to all env variables
     
     return make_response('Could not verify!', 401, {'WWW-Authenticate' : 'Basic realm = "Login Required:'})
 
