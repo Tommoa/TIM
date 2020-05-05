@@ -47,7 +47,8 @@ def get_website_blacklist():
         | rename "IP Address" as src_ip]
     | join usetime=true earlier=true "MAC Address"
         [search is-ise cise_passed_authentications | eval "MAC Address"=mvindex(split(Acct_Session_Id, "/"), 1)]
-    | table _time, UserName, "MAC Address", src_ip, dest_ip
+    | lookup myblacklist_lookup _key as dest_ip OUTPUT Host, Severity
+    | table _time, UserName, "MAC Address", src_ip, dest_ip, Host, Severity
     '''.format(search_time)
 
     job = service.jobs.create(search_string, **exec_mode)
