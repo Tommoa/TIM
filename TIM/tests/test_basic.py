@@ -1,9 +1,12 @@
 import pytest
 
-from . import my_app
-_app = my_app.create_app()
+import TIM
+_app = TIM.create_app(True)
 
-#from my_app import app as _app
+# https://docs.pytest.org/en/latest/example/simple.html
+# https://flask.palletsprojects.com/en/1.1.x/testing/
+# http://boussejra.com/2018/08/01/testing-with-flask.html
+
 
 @pytest.fixture
 def client(app):
@@ -20,5 +23,7 @@ def app():
 
 class TestLogin:
     def test_login_page(self, client):
+        print ("Testing login page...")
         response = client.get("/test/")
         assert response.status_code == 200
+
