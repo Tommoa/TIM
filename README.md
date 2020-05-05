@@ -71,6 +71,13 @@ flask run
 
 Currently there is only one endpoint - `get_id.py`.
 
+## Testing
+
+In the outer TIM folder (~/TIM) run the command:
+`pytest`
+
+Tests should be placed in the tests folder in TIM/TIM/tests. They should start with test_ to be recognised by pytest.
+
 ## Development
 
 ## Production
