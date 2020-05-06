@@ -22,10 +22,10 @@ bp = Blueprint('login', __name__, url_prefix='/login')
 def login():
     # Post method with data fields
     if request.method == 'POST':
-        username = flask.request.values.get('username') # Your form's
-        password = flask.request.values.get('password') # input names
+        username = flask.request.values.get('username')
+        password = flask.request.values.get('password')
         
-        if password == app.config['TIM_PASSWORD']:
+        if password and password == app.config['TIM_PASSWORD']:
             token = jwt.encode({'user':username, 'exp':datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'])
             return jsonify({'token' : token.decode('UTF-8')})
 
