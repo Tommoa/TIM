@@ -26,7 +26,8 @@ class DevelopmentConfig(Config):
 	POLLING = True
 	POLLING_INTERVAL = 80 # seconds
 	# Threat intelligence user config file
-	TI_CONFIG = "threat_intelligence_config.yaml"
+	SPA_TI_CONFIG = "threat_intelligence_config.yaml"
+    TIM_PASSWORD = ...
 ```
 
 These details are the credentials to access your local Splunk instance. Except your standard splunk port will not work - you have to find your management port. You can find this under `checking mgmt port : 8089` in the terminal when you start the Splunk server. Default is 8089.
