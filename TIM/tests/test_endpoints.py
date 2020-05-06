@@ -28,13 +28,11 @@ def app():
     # Tear down: run this after the tests are completed
     ctx.pop()
 
-def login(client, username1, password1):
-    # DOES NOT WORK
-    encoded = b64encode(b"user:Group1Password")
-    encoded = b"Basic " + encoded
-    print (str(encoded))
-    encoded_hard = "Basic IDpHcm91cDFQYXNzd29yZA=="
-    return client.get('/login', query_string = {"Authorization": encoded_hard}, follow_redirects=True)
+def login(client, usr, pwd):
+    return client.post('/login/', data=dict(
+        username=" ",
+        password="Group1Password"
+    ), follow_redirects=True)
 
 def logout(client):
     return client.get('/logout', follow_redirects=True)
@@ -55,9 +53,8 @@ class Test:
             response = client.get(url)
             assert response.status_code == 401
 
-    # DOES NOT WORK
+    # Test login with correct and incorrect password
     def test_login_endpoint(self, client):
-        rv = login(client, "", "Group1Password")
-        print (rv.data)
+        rv = login(client, 1, 2)
         assert b'token' in rv.data
     
