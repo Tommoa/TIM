@@ -1,11 +1,9 @@
 import pytest
 
-from flask import url_for
-from base64 import b64encode, b64decode
 import json
 
-
 import TIM
+
 _app = TIM.create_app(True)
 
 # https://docs.pytest.org/en/latest/example/simple.html
