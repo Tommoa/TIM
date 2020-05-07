@@ -78,6 +78,13 @@ In the outer TIM folder (~/TIM) run the command:
 
 Tests should be placed in the tests folder in TIM/TIM/tests. They should start with test_ to be recognised by pytest.
 
+To check test coverage:
+```
+pip install pytest-cov
+pytest --cov=TIM TIM
+```
+This will give you a percentage of all code that has been covered.
+
 ## Development
 
 ## Production
