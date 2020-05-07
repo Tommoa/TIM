@@ -14,7 +14,7 @@ from flask import current_app as app
 
 bp = Blueprint('get_latest_alert', __name__, url_prefix='/get_latest_alert')
 
-@bp.route('/')
+@bp.route('/', methods = ['GET', 'POST'])
 @cross_origin()
 @login.token_required
 def get_latest_alert():
