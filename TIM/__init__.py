@@ -90,3 +90,5 @@ def poll_splunk_for_threats(app):
         # Shut down the scheduler when exiting the app
         atexit.register(lambda: sched.shutdown(wait=False))
         sched.start()
+
+    return sched
