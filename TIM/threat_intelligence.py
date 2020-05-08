@@ -184,12 +184,16 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
     # Process results and write to database
     db = database.db()
     reader = results.ResultsReader(job.results())
+
     for result in reader:
         if isinstance(result, dict):
             if result['threat'] == "brute_force":
                 for (_, time, mac, username, num_attempts, num_failures,
                         num_successes) in zip(*list(result.values())):
-                    location = 'UWA'
+                    # TODO: Aloow extraction of location data from logs
+                    if config['geo_locations']['default_locations']['enabled']:
+                        location = rd.choice(config['geo_locations']
+                            ['default_locations']['locations'])
                     brute_force_threats = {
                         "username": username,
                         "threat": result['threat'],
@@ -200,14 +204,17 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
                         "num_attempts": num_attempts,
                         "threat_level": config[result['threat']]['threat_level'],
                         "location": get_point_location(location,
-                            geo_locations_intel)
-
+                            geo_locations_intel,)
                     }
                     db.brute_force_table.insert(brute_force_threats)
+
             elif result['threat'] == "multi_logins":
                 for (_, time, mac, unique_logins, username) in zip(
                         *list(result.values())):
-                    location = 'UWA'
+                    # TODO: Aloow extraction of location data from logs
+                    if config['geo_locations']['default_locations']['enabled']:
+                        location = rd.choice(config['geo_locations']
+                            ['default_locations']['locations'])
                     multi_logins_threats = {
                         "username": username,
                         "threat": result['threat'],
@@ -216,7 +223,7 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
                         "unique_logins": unique_logins,
                         "threat_level": config[result['threat']]['threat_level'],
                         "location": get_point_location(location,
-                            geo_locations_intel)
+                            geo_locations_intel,)
                     }
                     db.multi_logins_table.insert(multi_logins_threats)
     db.db.close()
@@ -255,9 +262,9 @@ def gen_geo_locations_intel(config):
 
         # Coordinates of bounding box encompassing location in lat/lon
         x1, x2, y1, y2 = (geo_location['boundary']['top_left'][1],
-                        geo_location['boundary']['top_right'][1],
-                        geo_location['boundary']['bottom_left'][0],
-                        geo_location['boundary']['top_left'][0])
+                        geo_location['boundary']['bottom_right'][1],
+                        geo_location['boundary']['top_left'][0],
+                        geo_location['boundary']['bottom_right'][0])
         num_nodes = geo_location['num_nodes']
         try:
             # Validate geolocation parameters provided by user
