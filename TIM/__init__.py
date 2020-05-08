@@ -3,7 +3,9 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
-from .threat_intelligence import (gen_complete_threat_query, detect_threats,
+from .threat_intelligence import (
+    gen_complete_threat_query,
+    detect_threats,
     gen_geo_locations_intel)
 import yaml
 from datetime import datetime
@@ -31,8 +33,12 @@ def create_app(test_config=None):
 
     # register blueprints e.g. endpoints
     from . import get_id, get_mac, login
-    from . import (get_website_blacklist, test, get_latest_alert, get_alerts,
-                    get_locations)
+    from . import (
+        get_website_blacklist,
+        test,
+        get_latest_alert,
+        get_alerts,
+        get_locations)
 
     app.register_blueprint(get_id.bp)
     app.register_blueprint(test.bp)
