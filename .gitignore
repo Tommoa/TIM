@@ -3,4 +3,3 @@ config.py
 .vscode
 __pycache__
 venv
-prod_config.py

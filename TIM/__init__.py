@@ -41,7 +41,7 @@ def create_app(test_config=None):
     app.register_blueprint(login.bp)
 
     # Start scheduler
-    if app.config['POLLING']: poll_splunk_for_threats(app)
+    if app.config['SPA_POLLING']: poll_splunk_for_threats(app)
 
     return app
 
@@ -49,13 +49,13 @@ def poll_splunk_for_threats(app):
     complete_threat_query = None
     # Generate Splunk query for polling all correctly activated threats
     try:
-        with open(app.config['TI_CONFIG']) as f:
+        with open(app.config['SPA_TI_CONFIG']) as f:
             config = yaml.safe_load(f)
         complete_threat_query = gen_complete_threat_query(config)
     except FileNotFoundError as e:
         msg = ("Threat intelligence user configuration file {} could not be "
                 "found. Threat detection disabled.").format(
-                app.config['TI_CONFIG'])
+                app.config['SPA_TI_CONFIG'])
         print(msg)
     except UserWarning as e:
         print(repr(e))
@@ -66,7 +66,7 @@ def poll_splunk_for_threats(app):
         sched = BackgroundScheduler(daemon=True)
         sched.add_job(detect_threats, 'interval',
             [app, complete_threat_query, config],
-            seconds=app.config['POLLING_INTERVAL'],
+            seconds=app.config['SPA_POLLING_INTERVAL'],
             next_run_time=datetime.now())
         # Shut down the scheduler when exiting the app
         atexit.register(lambda: sched.shutdown(wait=False))
