@@ -50,7 +50,7 @@ def token_required(f):
             return jsonify({'message': 'Token is missing.'}), 401
 
         try:
-            data = jwt.decode(token, app.config['SPA_SECRET_KEY'])
+            data = jwt.decode(token, app.config['SECRET_KEY'])
         except:
             return jsonify({'message': 'Token is invalid.'}), 401
         

@@ -166,10 +166,10 @@ def gen_complete_threat_query(config):
 def detect_threats(app, threat_query, config):
     print("Detecting_threats.")
     # Set up Splunk config
-    HOST = app.config['SPA_HOST']
-    PORT = app.config['SPA_PORT']
-    USERNAME = app.config['SPA_USERNAME']
-    PASSWORD = app.config['SPA_PASSWORD']
+    HOST = app.config['HOST']
+    PORT = app.config['PORT']
+    USERNAME = app.config['USERNAME']
+    PASSWORD = app.config['PASSWORD']
     service = client.connect(
         host=HOST,
         port=PORT,
