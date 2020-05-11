@@ -20,20 +20,21 @@ bp = Blueprint('login', __name__, url_prefix='/login')
 @bp.route('/', methods = ['POST', 'GET'])
 @cross_origin()
 def login():
-    # Post method with data fields
+    
+    # Post request with data fields
     if request.method == 'POST':
-        username = flask.request.values.get('username')
-        password = flask.request.values.get('password')
+        username = request.values.get('username')
+        password = request.values.get('password')
         
         if password and password == app.config['TIM_PASSWORD']:
-            token = jwt.encode({'user':username, 'exp':datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'])
+            token = jwt.encode({'user':username, 'exp':datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'], algorithm='HS256')
             return jsonify({'token' : token.decode('UTF-8')})
 
-    # Get basic authentication
+    # GET request basic authentication
     else:
         auth = request.authorization
         if auth and auth.password == app.config['TIM_PASSWORD']:
-            token = jwt.encode({'user':auth.username, 'exp': datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'])
+            token = jwt.encode({'user':auth.username, 'exp': datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'], algorithm='HS256')
             return jsonify({'token' : token.decode('UTF-8')})
     
     return make_response('Could not verify!', 401, {'WWW-Authenticate' : 'Basic realm = "Login Required:'})
@@ -43,14 +44,19 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = None
 
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
+        if request.method == 'POST':
+            if 'x-access-token' in request.values:
+                token = request.values.get('x-access-token')
+
+        if request.method == 'GET':
+            if 'x-access-token' in request.headers:
+                token = request.headers['x-access-token']
 
         if not token:
             return jsonify({'message': 'Token is missing.'}), 401
 
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'])
+            data = jwt.decode(token, app.config['SPA_SECRET_KEY'], algorithms=['HS256'])
         except:
             return jsonify({'message': 'Token is invalid.'}), 401
         

@@ -16,7 +16,7 @@ from flask import current_app as app
 
 bp = Blueprint('get_id', __name__, url_prefix='/get_id')
 
-@bp.route('/')
+@bp.route('/', methods=['GET', 'POST'])
 @login.token_required
 @cross_origin()
 def ids():
