@@ -27,6 +27,7 @@ jobs:
             SPA_PORT: ${{ secrets.SPA_PORT }}
             SPA_USERNAME: ${{ secrets.SPA_USERNAME }}
             SPA_PASSWORD: ${{ secrets.SPA_PASSWORD }}
+            TIM_PASSWORD: ${{ secrets.TIM_PASSWORD }}
         with:
           host: ${{ secrets.CI_HOSTNAME }}
           username: ${{ secrets.CI_USERNAME }}
@@ -35,7 +36,7 @@ jobs:
           envs: SPA_SECRET_KEY,SPA_HOST,SPA_PORT,SPA_USERNAME,SPA_PASSWORD
           script: |
             docker build -t tim /home/group1/TIM
-            docker create --volumes-from tim_container -p 5000:5000 -e SPA_SECRET_KEY -e SPA_HOST -e SPA_PORT -e SPA_USERNAME -e SPA_PASSWORD --name tim_container_tmp tim
+            docker create --volumes-from tim_container -p 5000:5000 -e SPA_SECRET_KEY -e SPA_HOST -e SPA_PORT -e SPA_USERNAME -e SPA_PASSWORD -e TIM_PASSWORD --name tim_container_tmp tim
             docker stop tim_container
             docker start tim_container_tmp
             docker rm tim_container

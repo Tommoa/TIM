@@ -9,3 +9,4 @@ class ProductionConfig():
     SPA_POLLING = True
     SPA_POLLING_INTERVAL = 80
     SPA_TI_CONFIG = "threat_intelligence_config.yaml"
+    TIM_PASSWORD = os.environ['TIM_PASSWORD']

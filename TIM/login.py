@@ -17,8 +17,8 @@ from flask import current_app as app
 
 bp = Blueprint('login', __name__, url_prefix='/login')
 
-@bp.route('/')
-@cross_origin() 
+@bp.route('/', methods = ['POST', 'GET'])
+@cross_origin()
 def login():
     auth = request.authorization
 
