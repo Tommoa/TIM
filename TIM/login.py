@@ -20,11 +20,22 @@ bp = Blueprint('login', __name__, url_prefix='/login')
 @bp.route('/', methods = ['POST', 'GET'])
 @cross_origin()
 def login():
-    auth = request.authorization
+    
+    # Post request with data fields
+    if request.method == 'POST':
+        username = request.values.get('username')
+        password = request.values.get('password')
+        
+        if password and password == app.config['TIM_PASSWORD']:
+            token = jwt.encode({'user':username, 'exp':datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'], algorithm='HS256')
+            return jsonify({'token' : token.decode('UTF-8')})
 
-    if auth and auth.password == "Group1Password":
-        token = jwt.encode({'user' : auth.username, 'exp': datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'])
-        return jsonify({'token' : token.decode('UTF-8')})
+    # GET request basic authentication
+    else:
+        auth = request.authorization
+        if auth and auth.password == app.config['TIM_PASSWORD']:
+            token = jwt.encode({'user':auth.username, 'exp': datetime.utcnow() + timedelta(hours = 6)}, app.config['SPA_SECRET_KEY'], algorithm='HS256')
+            return jsonify({'token' : token.decode('UTF-8')})
     
     return make_response('Could not verify!', 401, {'WWW-Authenticate' : 'Basic realm = "Login Required:'})
 
