@@ -44,14 +44,19 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = None
 
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
+        if request.method == 'POST':
+            if 'x-access-token' in request.values:
+                token = request.values.get('x-access-token')
+
+        if request.method == 'GET':
+            if 'x-access-token' in request.headers:
+                token = request.headers['x-access-token']
 
         if not token:
             return jsonify({'message': 'Token is missing.'}), 401
 
         try:
-            data = jwt.decode(token, app.config['SPA_SECRET_KEY'])
+            data = jwt.decode(token, app.config['SPA_SECRET_KEY'], algorithms=['HS256'])
         except:
             return jsonify({'message': 'Token is invalid.'}), 401
         
