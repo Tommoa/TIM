@@ -1,5 +1,6 @@
 from . import database
 from re import search
+import random as rd
 import splunklib.results as results
 import splunklib.client as client
 
@@ -152,8 +153,8 @@ def gen_complete_threat_query(config):
     try:
         complete_threat_query = threat_queries.pop()
     except IndexError as e:
-        msg = ("Threat detection fully inactive due to user threat "
-                "intelligence configuration or input.")
+        msg = ("Threat detection fully inactive according to user threat "
+                "intelligence configuration or due to incorrect input.")
         raise UserWarning(msg)
 
     # Construct final Splunk query for detecting all activated threats
@@ -163,7 +164,7 @@ def gen_complete_threat_query(config):
 
     return complete_threat_query
 
-def detect_threats(app, threat_query, config):
+def detect_threats(app, threat_query, geo_locations_intel, config):
     print("Detecting_threats.")
     # Set up Splunk config
     HOST = app.config['HOST']
@@ -183,11 +184,16 @@ def detect_threats(app, threat_query, config):
     # Process results and write to database
     db = database.db()
     reader = results.ResultsReader(job.results())
+
     for result in reader:
         if isinstance(result, dict):
             if result['threat'] == "brute_force":
                 for (_, time, mac, username, num_attempts, num_failures,
                         num_successes) in zip(*list(result.values())):
+                    # TODO: Aloow extraction of location data from logs
+                    if config['geo_locations']['default_locations']['enabled']:
+                        location = rd.choice(config['geo_locations']
+                            ['default_locations']['locations'])
                     brute_force_threats = {
                         "username": username,
                         "threat": result['threat'],
@@ -196,19 +202,28 @@ def detect_threats(app, threat_query, config):
                         "num_failures": num_failures,
                         "num_successes": num_successes,
                         "num_attempts": num_attempts,
-                        "threat_level": config[result['threat']]['threat_level']
+                        "threat_level": config[result['threat']]['threat_level'],
+                        "location": get_point_location(location,
+                            geo_locations_intel,)
                     }
                     db.brute_force_table.insert(brute_force_threats)
+
             elif result['threat'] == "multi_logins":
                 for (_, time, mac, unique_logins, username) in zip(
                         *list(result.values())):
+                    # TODO: Aloow extraction of location data from logs
+                    if config['geo_locations']['default_locations']['enabled']:
+                        location = rd.choice(config['geo_locations']
+                            ['default_locations']['locations'])
                     multi_logins_threats = {
                         "username": username,
                         "threat": result['threat'],
                         "time": time,
                         "mac": mac,
                         "unique_logins": unique_logins,
-                        "threat_level": config[result['threat']]['threat_level']
+                        "threat_level": config[result['threat']]['threat_level'],
+                        "location": get_point_location(location,
+                            geo_locations_intel,)
                     }
                     db.multi_logins_table.insert(multi_logins_threats)
     db.db.close()
@@ -228,3 +243,94 @@ def gen_multi_logins_desc(threat):
                 threat['mac'])
 
     return description
+
+def gen_geo_locations_intel(config):
+    if not config['geo_locations']['enabled']:
+        msg = ("'Geographical location' threat intelligence disabled by user.")
+        raise UserWarning(msg)
+
+    # Construct geolocation intelligence info according to config
+    geo_locations_intel = {}
+    gen_geo_loc_rd = rd.Random()
+    for location in config['geo_locations']['locations']:
+        geo_location = config['geo_locations']['locations'][location]
+        if geo_location['enabled'] is False:
+            msg = ("'Geographical location' threat intelligence for location "
+                "'{}' disabled by user.").format(location)
+            print(msg)
+            continue
+
+        # Coordinates of bounding box encompassing location in lat/lon
+        x1, x2, y1, y2 = (geo_location['boundary']['top_left'][1],
+                        geo_location['boundary']['bottom_right'][1],
+                        geo_location['boundary']['top_left'][0],
+                        geo_location['boundary']['bottom_right'][0])
+        num_nodes = geo_location['num_nodes']
+        try:
+            # Validate geolocation parameters provided by user
+            try:
+                num_nodes = int(num_nodes)
+            except ValueError as e:
+                msg = ("Number of nodes '{}' is not a base 10 "
+                        "integer.").format(num_nodes)
+                raise ValueError(msg)
+            if num_nodes < 0:
+                msg = ("Number of nodes must be greater than zero.")
+                raise ValueError(msg)
+
+            # Maintain static node coordinates every time app runs if set by
+            # user
+            if geo_location['static_node_coordinates']['enabled']:
+                gen_geo_loc_rd.seed(0)
+            else:
+                gen_geo_loc_rd.seed()
+            nodes = [{"lat": gen_geo_loc_rd.uniform(y1, y2), "lon":
+                gen_geo_loc_rd.uniform(x1, x2)} for _ in range(0, num_nodes)]
+
+            # Bias likelihood of threats to occur from one random node if set
+            # by user
+            conc = None
+            if geo_location['bias_threat_coordinates']['enabled']:
+                rd.shuffle(nodes)
+                conc = geo_location['bias_threat_coordinates']['concentration']
+                if not (float(conc) > 0 and float(conc) <= 1):
+                    msg = ("Concentration must be a number greater than 0 "
+                    "and less than or equal to 1.")
+                    raise ValueError(msg)
+                eq_prob = (1 - conc) / (len(nodes) - 1)
+            weights = ([conc] + [eq_prob] * (len(nodes) - 1) if conc is not None
+                else [1 / len(nodes)] * len(nodes))
+
+            geo_locations_intel[location] = {'nodes': nodes, 'weights': weights}
+
+        except (TypeError, ValueError) as e:
+            msg = ("'Geographical location' threat intelligence for location  "
+                "'{}' cannot be instantiated due to incorrect user "
+                "configuration. The following internal error was "
+                "raised:\n{}").format(location, repr(e))
+            print(msg)
+
+    if len(geo_locations_intel) == 0:
+        msg = ("'Geographical location' threat intelligence fully inactive for "
+            "all locations according to user configuration or do due to "
+            "incorrect user input")
+        raise UserWarning(msg)
+
+    print("'Geographical location' threat intelligence functional.")
+
+    return geo_locations_intel
+
+def get_point_location(location, geo_locations_intel):
+    # Gets the specific coordinates of threats detected in preset locations
+    lat_lon = {"lat": None, "lon": None}
+    if geo_locations_intel is not None:
+        if location in geo_locations_intel:
+            lat_lon = rd.choices(geo_locations_intel[location]['nodes'],
+                geo_locations_intel[location]['weights'], k=1).pop()
+        else:
+            msg = ("Threats detected from unrecognized location '{}', or location "
+                "is disabled in configuration. 'Geographical location' threat "
+                "intelligence not performed.").format(location)
+            print(msg)
+
+    return lat_lon

@@ -10,3 +10,21 @@ multi_logins:
   time_window: 5m
   unique_logins_thresh: 1
   threat_level: low
+
+geo_locations:
+  enabled: yes
+  default_locations:
+      enabled: yes
+      locations: [UWA]
+  locations:
+    UWA:
+      enabled: yes
+      boundary:
+        top_left: [-31.976653, 115.816020]
+        bottom_right: [-31.985883, 115.819904]
+      num_nodes: 30
+      static_node_coordinates:
+        enabled: no
+      bias_threat_coordinates:
+        enabled: yes
+        concentration: 0.4
