@@ -21,10 +21,10 @@ bp = Blueprint('get_id', __name__, url_prefix='/get_id')
 @cross_origin()
 def ids():
     # Set up config
-    HOST = app.config['HOST']
-    PORT = app.config['PORT']
-    USERNAME = app.config['USERNAME']
-    PASSWORD = app.config['PASSWORD']
+    HOST = app.config['SPA_HOST']
+    PORT = app.config['SPA_PORT']
+    USERNAME = app.config['SPA_USERNAME']
+    PASSWORD = app.config['SPA_PASSWORD']
 
     service = client.connect(
         host=HOST,
