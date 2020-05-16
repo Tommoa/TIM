@@ -1,12 +1,10 @@
-from .threat_intelligence import gen_statistics
+from flask import Blueprint, jsonify
+
 from flask_cors import cross_origin
+
 from . import login
+from .threat_intelligence import gen_statistics
 
-from . import database
-
-from flask import (
-    Blueprint, jsonify, flash, g, redirect, render_template, request, session, url_for
-)
 
 from flask import current_app as app
 
