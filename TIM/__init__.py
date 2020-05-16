@@ -38,7 +38,8 @@ def create_app(test_config=None):
         test,
         get_latest_alert,
         get_alerts,
-        get_locations)
+        get_locations,
+        get_statistics,)
 
     app.register_blueprint(get_id.bp)
     app.register_blueprint(test.bp)
@@ -48,6 +49,7 @@ def create_app(test_config=None):
     app.register_blueprint(get_alerts.bp)
     app.register_blueprint(login.bp)
     app.register_blueprint(get_locations.bp)
+    app.register_blueprint(get_statistics.bp)
 
     # Start scheduler
     if app.config['SPA_POLLING']: poll_splunk_for_threats(app)

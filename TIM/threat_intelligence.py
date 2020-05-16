@@ -3,6 +3,9 @@ from re import search
 import random as rd
 import splunklib.results as results
 import splunklib.client as client
+from collections import defaultdict
+from datetime import datetime, timedelta
+from operator import itemgetter
 
 
 def gen_brute_force_query(config):
@@ -134,7 +137,7 @@ def gen_complete_threat_query(config):
     # Construct threat queries for correctly enabled threats
     threat_queries = []
     threat_query_generators = { "brute_force": gen_brute_force_query,
-                                "multi_logins": gen_multi_logins_query
+                                "multi_logins": gen_multi_logins_query,
                                 }
     for threat, threat_query_generator in threat_query_generators.items():
         if config[threat]['enabled']:
@@ -191,6 +194,18 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
                 for (_, time, mac, username, num_attempts, num_failures,
                         num_successes) in zip(*list(result.values())):
                     # TODO: Aloow extraction of location data from logs
+
+                    # randomly skip threat
+                    if (config[result['threat']]['randomize'] and
+                        rd.choice([False, True])): continue
+
+                    # simulate threat time
+                    if config[result['threat']]['sim_time']['enabled']:
+                        now = int(datetime.now().timestamp())
+                        time_window = config[result['threat']]['sim_time'][
+                                            'window']
+                        time = rd.randint((now - time_window), now)
+
                     if config['geo_locations']['default_locations']['enabled']:
                         location = rd.choice(config['geo_locations']
                             ['default_locations']['locations'])
@@ -212,6 +227,18 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
                 for (_, time, mac, unique_logins, username) in zip(
                         *list(result.values())):
                     # TODO: Aloow extraction of location data from logs
+
+                    # randomly skip threat
+                    if (config[result['threat']]['randomize'] and
+                        rd.choice([False, True])): continue
+
+                    # simulate threat time
+                    if config[result['threat']]['sim_time']['enabled']:
+                        now = int(datetime.now().timestamp())
+                        time_window = config[result['threat']]['sim_time'][
+                                            'window']
+                        time = rd.randint((now - time_window), now)
+
                     if config['geo_locations']['default_locations']['enabled']:
                         location = rd.choice(config['geo_locations']
                             ['default_locations']['locations'])
@@ -226,6 +253,7 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
                             geo_locations_intel,)
                     }
                     db.multi_logins_table.insert(multi_logins_threats)
+
     db.db.close()
 
 def gen_brute_force_desc(threat):
@@ -334,3 +362,55 @@ def get_point_location(location, geo_locations_intel):
             print(msg)
 
     return lat_lon
+
+def gen_statistics():
+    # generate detected threat statistics
+    db = database.db()
+    now = datetime.now()
+    past_24_hrs = timedelta(hours=24)
+    stat_names = ['num_alerts_per_cat', 'num_alerts',
+                  'user_threat_count', 'multi_logins_macs',
+                  'brute_force']
+    stats = {stat_name: defaultdict(int) for stat_name in stat_names}
+
+    for table_name in db.db.tables():
+        if table_name != 'default':
+            for alert in db.db.table(table_name).all():
+                try:
+                    threat_time = datetime.fromtimestamp(int(alert['time']))
+                except ValueError:
+                    continue
+                # number of threats per category
+                stats['num_alerts_per_cat'][alert['threat']] += 1
+
+                # number of threats in the past 24 hours
+                stats['num_alerts']['24_hrs'] += sum([now - past_24_hrs
+                                                     <= threat_time <= now])
+
+                # number of threats per user
+                stats['user_threat_count'][alert['username']] += 1
+
+                # brute force login failures, attempts and successes in the
+                # past 24 hours
+                if (alert['threat'] == 'brute_force') and (now - past_24_hrs
+                   <= threat_time <= now):
+                    stats['brute_force']['num_failures'] += int(alert[
+                                                             'num_failures'])
+                    stats['brute_force']['num_successes'] += int(alert[
+                                                            'num_successes'])
+                    stats['brute_force']['num_attempts'] += int(alert[
+                                                            'num_attempts'])
+
+                # macs with multiple login threats and count
+                if alert['threat'] == 'multi_logins':
+                    stats['multi_logins_macs'][alert['mac']] += 1
+
+    db.db.close()
+
+    # only return top counts
+    stats['multi_logins_macs'] = dict(sorted(stats['multi_logins_macs'].items(),
+                                      key=itemgetter(1), reverse=True)[:5])
+    stats['user_threat_count'] = dict(sorted(stats['user_threat_count'].items(),
+                                      key=itemgetter(1), reverse=True)[:5])
+
+    return stats
