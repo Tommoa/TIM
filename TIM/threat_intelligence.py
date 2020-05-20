@@ -172,6 +172,13 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
     # Set up Splunk config
     HOST = app.config['SPA_HOST']
     PORT = app.config['SPA_PORT']
+    # validate input port
+    try:
+        PORT = int(PORT)
+    except ValueError:
+        msg = ("Splunk config input port '{}' is not a base 10 integer."
+               ).format(PORT)
+        raise ValueError(msg)
     USERNAME = app.config['SPA_USERNAME']
     PASSWORD = app.config['SPA_PASSWORD']
     service = client.connect(
