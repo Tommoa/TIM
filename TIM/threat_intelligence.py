@@ -174,7 +174,7 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
     # validate input port
     try:
         PORT = int(app.config['SPA_PORT'])
-    except ValueError as e:
+    except ValueError:
         msg = ("Splunk config input port '{}' is not a base 10 integer."
                ).format(app.config['SPA_PORT'])
         raise ValueError(msg)
