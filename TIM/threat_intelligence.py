@@ -6,6 +6,7 @@ import splunklib.client as client
 from collections import defaultdict
 from datetime import datetime, timedelta
 from operator import itemgetter
+from tinyrecord import transaction
 
 
 def gen_brute_force_query(config):
@@ -228,7 +229,8 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
                         "location": get_point_location(location,
                             geo_locations_intel,)
                     }
-                    db.brute_force_table.insert(brute_force_threats)
+                    with transaction(db.brute_force_table) as inserter:
+                        inserter.insert(brute_force_threats)
 
             elif result['threat'] == "multi_logins":
                 for (_, time, mac, unique_logins, username) in zip(
@@ -259,7 +261,8 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
                         "location": get_point_location(location,
                             geo_locations_intel,)
                     }
-                    db.multi_logins_table.insert(multi_logins_threats)
+                    with transaction(db.multi_logins_table) as inserter:
+                        inserter.insert(multi_logins_threats)
 
     db.db.close()
 

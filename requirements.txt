@@ -3,5 +3,6 @@ Flask-Cors==3.0.8
 APScheduler==3.6.3
 splunk-sdk==1.6.12 
 tinydb==3.15.2
+tinyrecord==0.1.5
 pyYAML==5.3.1
 PyJWT==1.7.1
