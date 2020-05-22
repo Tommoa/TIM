@@ -241,7 +241,7 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
             if result['threat'] == "brute_force":
                 for (_, time, mac, username, num_attempts, num_failures,
                         num_successes) in zip(*list(result.values())):
-                    # TODO: Aloow extraction of location data from logs
+                    # TODO: Allow extraction of location data from logs
 
                     # randomly skip threat
                     if (config[result['threat']]['randomize'] and
@@ -274,7 +274,7 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
             elif result['threat'] == "multi_logins":
                 for (_, time, mac, unique_logins, username) in zip(
                         *list(result.values())):
-                    # TODO: Aloow extraction of location data from logs
+                    # TODO: Allow extraction of location data from logs
 
                     # randomly skip threat
                     if (config[result['threat']]['randomize'] and
@@ -304,7 +304,7 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
 
             elif result['threat'] == "website_blacklist":
                 (_, username, mac, ip, time) = list(result.values())
-                    # TODO: Aloow extraction of location data from logs
+                    # TODO: Allow extraction of location data from logs
 
                 # randomly skip threat
                 if (config[result['threat']]['randomize'] and
