@@ -7,6 +7,46 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from operator import itemgetter
 
+def gen_website_blacklist_query(config):
+    threat_name = "website_blacklist"
+    websites = config['website_blacklist']['websites']
+    max_searches = config['website_blacklist']['max_searches']
+
+    # Validate threat parameters provided by user
+    if len(websites) == 0:
+        msg = "No blacklisted Websites provided."
+        raise ValueError(msg)
+
+    try:
+        max_searches_int = int(max_searches)
+    except ValueError:
+        msg = ("Website blacklist threat parameter (max searches) '{}'"
+               "is not a base 10 integer.").format(max_searches)
+        raise ValueError(msg)
+    if max_searches_int < 0:
+        msg = ("Website blacklist threat parameter (max searches) '{}'"
+               "is not a positive integer.").format(max_searches_int)
+        raise ValueError(msg)
+
+    search_query = get_website_blacklist_sring(threat_name, websites, max_searches)
+
+    return search_query
+
+def get_website_blacklist_sring(threat_name, websites, max_searches):
+    ips = []
+    for ip in websites.keys():
+        ips.append("match(_raw, \"{}\"), \"{}\"".format(ip, ip))
+    ips = ", ".join(ips)
+
+    website_blacklist_string = (" search * \"Built inbound * connection\" "
+        "151.101.1.140 | eval ip=case({}), time=_time | map "
+        "search=\"search latest=$time$ is-ise cise_passed_authentications "
+        "| eval time=$time$, ip=$ip$, threat=\\\"{}\\\" | stats "
+        "first(UserName) as username, first(EndPointMACAddress) as mac, "
+        "values(ip) as ip, values(time) as time by threat \" maxsearches={} "
+        ).format(ips, threat_name, max_searches)
+
+    return website_blacklist_string
 
 def gen_brute_force_query(config):
     threat_name = "brute_force"
@@ -138,6 +178,7 @@ def gen_complete_threat_query(config):
     threat_queries = []
     threat_query_generators = { "brute_force": gen_brute_force_query,
                                 "multi_logins": gen_multi_logins_query,
+                                "website_blacklist": gen_website_blacklist_query,
                                 }
     for threat, threat_query_generator in threat_query_generators.items():
         if config[threat]['enabled']:
@@ -260,6 +301,37 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
                             geo_locations_intel,)
                     }
                     db.multi_logins_table.insert(multi_logins_threats)
+
+            elif result['threat'] == "website_blacklist":
+                (_, username, mac, ip, time) = list(result.values())
+                    # TODO: Aloow extraction of location data from logs
+
+                # randomly skip threat
+                if (config[result['threat']]['randomize'] and
+                    rd.choice([False, True])): continue
+
+                # simulate threat time
+                if config[result['threat']]['sim_time']['enabled']:
+                    now = int(datetime.now().timestamp())
+                    time_window = config[result['threat']]['sim_time'][
+                                        'window']
+                    time = rd.randint((now - time_window), now)
+
+                if config['geo_locations']['default_locations']['enabled']:
+                    location = rd.choice(config['geo_locations']
+                        ['default_locations']['locations'])
+                blacklist_threats = {
+                    "username": username,
+                    "threat": result['threat'],
+                    "time": time,
+                    "mac": mac,
+                    "website": {result['ip']: config[result['threat']]
+                        ['websites'][result['ip']]},
+                    "threat_level": config[result['threat']]['threat_level'],
+                    "location": get_point_location(location,
+                        geo_locations_intel,)
+                }
+                db.blacklist_table.insert(blacklist_threats)
 
     db.db.close()
 
