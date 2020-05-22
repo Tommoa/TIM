@@ -1,9 +1,11 @@
 import os
 from time import sleep
-from . import database
 from datetime import datetime
-from .threat_intelligence import gen_brute_force_desc, gen_multi_logins_desc
-from . import login
+from . import login, database
+from .threat_intelligence import (
+    gen_brute_force_desc,
+    gen_multi_logins_desc,
+    gen_website_blacklist_desc)
 from flask_cors import cross_origin
 
 from flask import (
@@ -41,6 +43,8 @@ def get_latest_alert():
                     latest_alert['threat'] == "brute_force" else
                     gen_multi_logins_desc(latest_alert) if
                     latest_alert['threat'] == "multi_logins" else
+                    gen_website_blacklist_desc(latest_alert) if
+                    latest_alert['threat'] == "website_blacklist" else
                     "No description.")
 
     response = [{ "user" : latest_alert['username'],
