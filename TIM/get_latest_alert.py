@@ -39,13 +39,12 @@ def get_latest_alert():
     timestamp = int(latest_alert['time'])
     dt = datetime.fromtimestamp(timestamp)
     timestamp = dt.strftime("%d %B %Y %I:%M %p")
-    description = (gen_brute_force_desc(latest_alert) if
-                    latest_alert['threat'] == "brute_force" else
-                    gen_multi_logins_desc(latest_alert) if
-                    latest_alert['threat'] == "multi_logins" else
-                    gen_website_blacklist_desc(latest_alert) if
-                    latest_alert['threat'] == "website_blacklist" else
-                    "No description.")
+    desc_func = {
+        "brute_force": gen_brute_force_desc,
+        "multi_logins": gen_multi_logins_desc,
+        "website_blacklist": gen_website_blacklist_desc,
+    }
+    description = desc_func[latest_alert['threat']](latest_alert)
 
     response = [{ "user" : latest_alert['username'],
                   "alert": description,
