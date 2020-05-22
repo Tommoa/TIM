@@ -6,6 +6,7 @@ import splunklib.client as client
 from collections import defaultdict
 from datetime import datetime, timedelta
 from operator import itemgetter
+from tinyrecord import transaction
 
 def gen_website_blacklist_query(config):
     threat_name = "website_blacklist"
@@ -331,7 +332,8 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
                     "location": get_point_location(location,
                         geo_locations_intel,)
                 }
-                db.blacklist_table.insert(blacklist_threats)
+                with transaction(db.blacklist_table) as inserter:
+                    inserter.insert(blacklist_threats)
 
     db.db.close()
 
