@@ -20,6 +20,20 @@ multi_logins:
   unique_logins_thresh: 1
   threat_level: low
 
+website_blacklist:
+  enabled: yes
+  randomize: yes
+  sim_time:
+    enabled: yes
+    window: 72
+  max_searches: 10
+  websites:
+      151.101.1.140: reddit.com
+      157.240.8.35: facebook.com
+      172.217.167.78: google.com
+      172.217.25.174: youtube.com
+  threat_level: high
+
 geo_locations:
   enabled: yes
   default_locations:

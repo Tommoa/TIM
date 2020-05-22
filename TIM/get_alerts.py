@@ -2,12 +2,11 @@ import os
 from time import sleep
 from datetime import datetime
 from flask_cors import cross_origin
-from . import login
-
 from . import database, login
-from .threat_intelligence import gen_brute_force_desc, gen_multi_logins_desc
-
-
+from .threat_intelligence import (
+    gen_brute_force_desc,
+    gen_multi_logins_desc,
+    gen_website_blacklist_desc)
 from flask import (
     Blueprint, jsonify, flash, g, redirect, render_template, request, session, url_for
 )
@@ -43,11 +42,12 @@ def get_alerts():
         timestamp = int(latest_alert['time'])
         dt = datetime.fromtimestamp(timestamp)
         timestamp = dt.strftime("%d %B %Y %I:%M %p")
-        description = (gen_brute_force_desc(latest_alert) if
-                        latest_alert['threat'] == "brute_force" else
-                        gen_multi_logins_desc(latest_alert) if
-                        latest_alert['threat'] == "multi_logins" else
-                        "No description.")
+        desc_func = {
+            "brute_force": gen_brute_force_desc,
+            "multi_logins": gen_multi_logins_desc,
+            "website_blacklist": gen_website_blacklist_desc,
+        }
+        description = desc_func[latest_alert['threat']](latest_alert)
 
         response.append({ "user" : latest_alert['username'],
                               "alert": description,
