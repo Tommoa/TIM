@@ -351,6 +351,13 @@ def gen_multi_logins_desc(threat):
 
     return description
 
+def gen_website_blacklist_desc(threat):
+    # Threat summary for blacklisted website access
+    description = ("User accessed blacklisted website: {}.").format(threat[
+                  'website'])
+
+    return description
+
 def gen_geo_locations_intel(config):
     if not config['geo_locations']['enabled']:
         msg = ("'Geographical location' threat intelligence disabled by user.")
