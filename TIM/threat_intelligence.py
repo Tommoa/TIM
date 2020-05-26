@@ -234,7 +234,7 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
     job = service.jobs.create(threat_query, **kwargs_search)
 
     # Process results and write to database
-    db = database.db()
+    db = database.database
     reader = results.ResultsReader(job.results())
 
     for result in reader:
@@ -336,8 +336,6 @@ def detect_threats(app, threat_query, geo_locations_intel, config):
                 }
                 with transaction(db.blacklist_table) as inserter:
                     inserter.insert(blacklist_threats)
-
-    db.db.close()
 
 def gen_brute_force_desc(threat):
     # Threat summary for brute force attempt instance
@@ -455,7 +453,7 @@ def get_point_location(location, geo_locations_intel):
 
 def gen_statistics():
     # generate detected threat statistics
-    db = database.db()
+    db = database.database
     now = datetime.now()
     past_24_hrs = timedelta(hours=24)
     stat_names = ['num_alerts_per_cat', 'num_alerts',
@@ -494,8 +492,6 @@ def gen_statistics():
                 # macs with multiple login threats and count
                 if alert['threat'] == 'multi_logins':
                     stats['multi_logins_macs'][alert['mac']] += 1
-
-    db.db.close()
 
     # only return top counts
     stats['multi_logins_macs'] = dict(sorted(stats['multi_logins_macs'].items(),

@@ -21,10 +21,9 @@ bp = Blueprint('get_latest_alert', __name__, url_prefix='/get_latest_alert')
 @login.token_required
 def get_latest_alert():
     # Retrieve alerts
-    db = database.db()
+    db = database.database
     alerts = [doc for table_name in db.db.tables() for doc in db.db.table(
                 table_name).all() if table_name != 'default']
-    db.db.close()
 
     # Check if any alerts are present
     if len(alerts) == 0:

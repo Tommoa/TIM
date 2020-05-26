@@ -20,10 +20,9 @@ bp = Blueprint('get_alerts', __name__, url_prefix='/get_alerts')
 @login.token_required
 def get_alerts():
     # Retrieve alerts
-    db = database.db()
+    db = database.database
     alerts = [doc for table_name in db.db.tables() for doc in db.db.table(
                 table_name).all() if table_name != 'default']
-    db.db.close()
 
     # Check if any alerts are present
     if len(alerts) == 0:
