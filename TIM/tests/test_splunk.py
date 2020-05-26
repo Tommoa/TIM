@@ -29,7 +29,7 @@ def app():
     # Tear down: run this after the tests are completed
     ctx.pop()
 
-class TestScheduler:
+class TestSplunk:
     def test_splunk_access(self, client):
         # Checks that TIM can access splunk using the credentials in config
         # and complete an empty search
