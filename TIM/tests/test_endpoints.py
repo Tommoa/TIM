@@ -56,18 +56,16 @@ class TestEndpoints:
 
     def test_protected_endpoints_with_login(self, client):
         # not working
-        urls = ["/get_id/", "/get_alerts/", "/get_latest_alert/", "/get_mac/"]
+        urls = ["/get_alerts/", "/get_latest_alert/", "/get_mac/"]
         for url in urls:
 
             token_reply = login(client, " ", _app.config['TIM_PASSWORD'])
             token = (json.loads(str(token_reply.data, 'utf-8'))['token'])
+            print (token)
 
-            response = client.post(url, data = dict(
-                xaccesstoken=token
-            ))
+            d = {'x-access-token': token}
+            print (d)
+            response = client.post(url, data = d)
 
             print ("Testing endpoint with login: " + url)
             assert response.status_code == 200
-
-
-    

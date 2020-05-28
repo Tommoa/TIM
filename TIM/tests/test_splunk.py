@@ -33,8 +33,16 @@ class TestSplunk:
     def test_splunk_access(self, client):
         # Checks that TIM can access splunk using the credentials in config
         # and complete an empty search
+
         HOST = _app.config['SPA_HOST']
         PORT = _app.config['SPA_PORT']
+        # validate input port
+        try:
+            PORT = int(PORT)
+        except ValueError:
+            msg = ("Splunk config input port '{}' is not a base 10 integer."
+                ).format(PORT)
+            raise ValueError()
         USERNAME = _app.config['SPA_USERNAME']
         PASSWORD = _app.config['SPA_PASSWORD']
         service = splunk_client.connect(
@@ -42,8 +50,10 @@ class TestSplunk:
             port=PORT,
             username=USERNAME,
             password=PASSWORD)
+
+        # Generate necessary search parameters and run search
         
         kwargs_search = {"exec_mode": "blocking"}
-        job = service.jobs.create("search *", **kwargs_search)
+        job = service.jobs.create("search * is-ise cise_passed_authentications", **kwargs_search)
         
         assert (service)
