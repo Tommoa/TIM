@@ -1,3 +1,4 @@
+import os
 from . import database
 from re import search
 import random as rd
@@ -210,6 +211,12 @@ def gen_complete_threat_query(config):
     return complete_threat_query
 
 def detect_threats(app, threat_query, geo_locations_intel, config):
+    # Delete database fix
+    if os.path.exists("db.json"):
+        os.remove("db.json")
+    else:
+        print("The file does not exist")
+
     print("Detecting_threats.")
     # Set up Splunk config
     HOST = app.config['SPA_HOST']
