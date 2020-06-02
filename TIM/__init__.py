@@ -19,10 +19,16 @@ def create_app(test_config=None):
     cors = CORS(app)
     app.config['CORS_HEADERS'] = 'Content-Type'
 
+    # Check if testing
+    if test_config:
+        app.config["ENV"] = "testing"
+
     # Load config
-    if app.config["ENV"] == "development":
+    if app.config["ENV"] == "testing":
+        app.config.from_object("config.TestingConfig")
+    elif app.config["ENV"] == "development":
       app.config.from_object("config.DevelopmentConfig")
-    if app.config["ENV"] == "production":
+    elif app.config["ENV"] == "production":
       app.config.from_object("prod_config.ProductionConfig")
 
     # ensure the instance folder exists
@@ -84,3 +90,5 @@ def poll_splunk_for_threats(app):
         # Shut down the scheduler when exiting the app
         atexit.register(lambda: sched.shutdown(wait=False))
         sched.start()
+
+    return sched
