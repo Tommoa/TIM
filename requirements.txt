@@ -4,5 +4,5 @@ APScheduler==3.6.3
 splunk-sdk==1.6.12 
 tinydb==3.15.2
 tinyrecord==0.1.5
-pyYAML==5.3.1
+pyYAML==5.4
 PyJWT==2.4.0
